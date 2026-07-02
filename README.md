@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CapitalCore - Premium Trading & Investment Platform
 
-## Getting Started
+Production-ready Next.js fintech starter with premium UI, authentication, trading widgets, payment integrations, and Prisma-backed data models.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js App Router + TypeScript + Tailwind CSS
+- Framer Motion animations
+- NextAuth (Google, Facebook, credentials)
+- PostgreSQL + Prisma
+- Crypto deposits (BTC, USDT, ETH)
+- Recharts dashboard charts
+- Zustand global state
+
+## Project Structure
+
+- `app/` routes and API handlers
+- `components/` reusable UI
+- `features/` domain-specific modules
+- `lib/` auth, prisma, utilities
+- `hooks/`, `services/`, `store/`
+- `prisma/` schema + seed data
+
+## Environment Variables
+
+Create `.env`:
+
+```env
+# From Supabase → Project Settings → Database
+DATABASE_URL="postgresql://postgres.[ref]:[password]@....pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.[ref]:[password]@....pooler.supabase.com:5432/postgres"
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=replace-with-a-secure-secret
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+OWNER_EMAIL=owner@capitalcore.com
+OWNER_PASSWORD=replace-with-secure-owner-password
+CRYPTO_BTC_ADDRESS=your-btc-deposit-address
+CRYPTO_USDT_ADDRESS=your-usdt-deposit-address
+CRYPTO_ETH_ADDRESS=your-eth-deposit-address
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Run Locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Create a free project at [supabase.com](https://supabase.com)
+2. Copy **Connection strings** into `.env.local` (see `.env.example`)
+3. `npm install`
+4. `npm run db:push` (creates tables in Supabase)
+5. `npm run db:seed`
+6. `npm run dev`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+After seeding, you can sign in with the demo account:
 
-## Learn More
+- Email: `demo@capitalcore.com`
+- Password: `Password123!`
 
-To learn more about Next.js, take a look at the following resources:
+Owner admin (seed defaults):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Email: `owner@capitalcore.com`
+- Password: `OwnerPassword123!` (or set `OWNER_PASSWORD` in env before seeding)
+- Admin panel: `/admin` (visible only to the owner account)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Auth routes: `/signin`, `/signup`. The protected dashboard lives at `/dashboard`.
 
-## Deploy on Vercel
+### Google sign-in
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Create OAuth credentials in [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+2. Add redirect URI: `http://localhost:3000/api/auth/callback/google`
+3. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env.local`, then restart `npm run dev`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy To Vercel
+
+1. Push the repository to GitHub.
+2. Import into [Vercel](https://vercel.com/).
+3. Add all environment variables in project settings.
+4. Set `DATABASE_URL` to your production Postgres instance.
+5. Run migration after deploy: `npx prisma migrate deploy`.

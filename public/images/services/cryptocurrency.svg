@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Cryptocurrency investment">
+  <defs>
+    <linearGradient id="c" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#312e81"/>
+      <stop offset="45%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#c)"/>
+  <circle cx="400" cy="300" r="120" fill="none" stroke="#f8fafc" stroke-width="8" opacity="0.35"/>
+  <text x="340" y="318" fill="#f8fafc" font-family="system-ui,sans-serif" font-size="72" font-weight="700" opacity="0.9">�</text>
+  <text x="48" y="72" fill="#f8fafc" font-family="system-ui,sans-serif" font-size="28" font-weight="700">Digital assets</text>
+</svg>

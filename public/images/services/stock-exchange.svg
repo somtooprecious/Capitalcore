@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Stock exchange investment">
+  <defs>
+    <linearGradient id="s" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#s)"/>
+  <polyline points="80,420 200,340 320,380 440,260 560,300 720,180" fill="none" stroke="#4ade80" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="48" y="72" fill="#f8fafc" font-family="system-ui,sans-serif" font-size="28" font-weight="700">Listed equities</text>
+</svg>

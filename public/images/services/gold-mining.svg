@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Gold mining investment">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="55%" stop-color="#92400e"/>
+      <stop offset="100%" stop-color="#f5b342"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#g)"/>
+  <circle cx="620" cy="140" r="90" fill="#f5b342" opacity="0.25"/>
+  <path d="M120 480 L280 280 L420 380 L560 220 L720 480 Z" fill="#0f172a" opacity="0.35"/>
+  <text x="48" y="72" fill="#f8fafc" font-family="system-ui,sans-serif" font-size="28" font-weight="700">Gold &amp; resources</text>
+</svg>
