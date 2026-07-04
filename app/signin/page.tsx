@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { AuthForm } from "@/features/auth/auth-form";
 import { AuthHeroPanel } from "@/features/auth/auth-hero-panel";
@@ -12,7 +13,9 @@ export default function SignInPage() {
       <section className="flex items-center justify-center p-6">
         <Card className="w-full max-w-md space-y-5">
           <h1 className="text-2xl font-bold">Sign in to CapitalCore AI</h1>
-          <AuthForm mode="signin" />
+          <Suspense fallback={<p className="text-sm text-muted">Loading form…</p>}>
+            <AuthForm mode="signin" />
+          </Suspense>
           <p className="text-sm text-muted">
             <Link href="/forgot-password" className="text-primary underline-offset-4 hover:underline">
               Forgot password?
