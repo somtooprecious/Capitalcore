@@ -42,6 +42,7 @@ export type HomeMessages = {
     howItWorks: string;
   };
   liveMarkets: { title: string; body: string };
+  realTimeQuotes: { title: string; subtitle: string; live: string; updated: string };
   faq: { title: string; fullFaq: string };
   cta: { title: string; body: string; openAccount: string };
 };
@@ -129,6 +130,12 @@ const en: HomeMessages = {
   liveMarkets: {
     title: "Live markets",
     body: "Professional TradingView charts for research and execution.",
+  },
+  realTimeQuotes: {
+    title: "Real-Time Quotes",
+    subtitle: "Live USDT prices across major exchanges—refreshed every few seconds.",
+    live: "Live",
+    updated: "Updated",
   },
   faq: { title: "Frequently asked questions", fullFaq: "Full FAQ" },
   cta: {
@@ -222,6 +229,12 @@ const es: HomeMessages = {
     title: "Mercados en vivo",
     body: "Gráficos TradingView profesionales para investigación y ejecución.",
   },
+  realTimeQuotes: {
+    title: "Cotizaciones en tiempo real",
+    subtitle: "Precios USDT en vivo en los principales exchanges—actualizados cada pocos segundos.",
+    live: "En vivo",
+    updated: "Actualizado",
+  },
   faq: { title: "Preguntas frecuentes", fullFaq: "FAQ completo" },
   cta: {
     title: "¿Listo para operar con CapitalCore AI?",
@@ -314,6 +327,12 @@ const fr: HomeMessages = {
     title: "Marchés en direct",
     body: "Graphiques TradingView professionnels pour recherche et exécution.",
   },
+  realTimeQuotes: {
+    title: "Cotations en temps réel",
+    subtitle: "Prix USDT en direct sur les principales plateformes—actualisés toutes les quelques secondes.",
+    live: "En direct",
+    updated: "Mis à jour",
+  },
   faq: { title: "Questions fréquentes", fullFaq: "FAQ complet" },
   cta: {
     title: "Prêt à trader avec CapitalCore AI ?",
@@ -405,6 +424,12 @@ const de: HomeMessages = {
   liveMarkets: {
     title: "Live-Märkte",
     body: "Professionelle TradingView-Charts für Analyse und Ausführung.",
+  },
+  realTimeQuotes: {
+    title: "Echtzeit-Kurse",
+    subtitle: "Live-USDT-Preise auf großen Börsen—alle paar Sekunden aktualisiert.",
+    live: "Live",
+    updated: "Aktualisiert",
   },
   faq: { title: "Häufig gestellte Fragen", fullFaq: "Vollständige FAQ" },
   cta: {

@@ -6,6 +6,7 @@ import { Bot, Brain, LineChart, Shield, Sparkles, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { AnimatedSection } from "@/components/animated-section";
+import { RealTimeQuotes } from "@/components/landing/real-time-quotes";
 import { useTranslations } from "@/hooks/use-translations";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +28,8 @@ export function AiPlatformSections() {
           ))}
         </div>
       </AnimatedSection>
+
+      <RealTimeQuotes />
 
       <AnimatedSection className="mx-auto max-w-6xl px-4 py-8">
         <div className="mb-8 flex items-center gap-2">
