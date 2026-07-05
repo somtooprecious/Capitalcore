@@ -1,12 +1,11 @@
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/session";
 import { isOwner } from "@/lib/roles";
 
 export async function requireOwnerApi() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id || !isOwner(session.user.role)) {
+  const user = await getAuthUser();
+  if (!user || !isOwner(user.role)) {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
-  return { session };
+  return { user, session: { user: { id: user.id, email: user.email, role: user.role } } };
 }

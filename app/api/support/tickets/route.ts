@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireApiUser } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireApiUser();
+  if ("error" in auth) return auth.error;
+  const { user } = auth;
 
   const tickets = await prisma.supportTicket.findMany({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     take: 30,
   });
@@ -27,10 +25,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireApiUser();
+  if ("error" in auth) return auth.error;
+  const { user } = auth;
 
   const body = (await req.json()) as { subject?: string; message?: string };
   const subject = body.subject?.trim();
@@ -41,12 +38,12 @@ export async function POST(req: Request) {
   }
 
   const ticket = await prisma.supportTicket.create({
-    data: { userId: session.user.id, subject, message },
+    data: { userId: user.id, subject, message },
   });
 
   await prisma.notification.create({
     data: {
-      userId: session.user.id,
+      userId: user.id,
       title: "Support ticket received",
       body: `We received your ticket: ${subject}`,
       type: "SUPPORT",

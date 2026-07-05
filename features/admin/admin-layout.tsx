@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { useClerk } from "@clerk/nextjs";
 import { LayoutDashboard, LogOut, Settings, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ type AdminLayoutProps = {
 
 export function AdminLayout({ user, children }: AdminLayoutProps) {
   const pathname = usePathname();
+  const { signOut } = useClerk();
 
   return (
     <main className="grid min-h-screen md:grid-cols-[260px_1fr]">
@@ -56,7 +57,7 @@ export function AdminLayout({ user, children }: AdminLayoutProps) {
           variant="outline"
           className="mt-4 w-full justify-start gap-2"
           type="button"
-          onClick={() => signOut({ callbackUrl: "/" })}
+          onClick={() => signOut({ redirectUrl: "/" })}
         >
           <LogOut className="h-4 w-4" aria-hidden />
           Sign out

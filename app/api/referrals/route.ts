@@ -1,24 +1,22 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireApiUser } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { generateReferralCode } from "@/lib/platform-config";
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireApiUser();
+  if ("error" in auth) return auth.error;
+  const { user } = auth;
 
-  let user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+  let dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
     select: { referralCode: true },
   });
 
-  if (!user?.referralCode) {
-    const code = generateReferralCode(session.user.email ?? session.user.id);
-    user = await prisma.user.update({
-      where: { id: session.user.id },
+  if (!dbUser?.referralCode) {
+    const code = generateReferralCode(user.email ?? user.id);
+    dbUser = await prisma.user.update({
+      where: { id: user.id },
       data: { referralCode: code },
       select: { referralCode: true },
     });
@@ -26,12 +24,12 @@ export async function GET() {
 
   const [referrals, earnings] = await Promise.all([
     prisma.referral.findMany({
-      where: { referrerId: session.user.id },
+      where: { referrerId: user.id },
       include: { referred: { select: { name: true, email: true, createdAt: true } } },
       orderBy: { createdAt: "desc" },
     }),
     prisma.earning.findMany({
-      where: { userId: session.user.id, source: "REFERRAL" },
+      where: { userId: user.id, source: "REFERRAL" },
       orderBy: { createdAt: "desc" },
       take: 20,
     }),
@@ -40,8 +38,8 @@ export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
   return NextResponse.json({
-    code: user.referralCode,
-    link: `${baseUrl}/signup?ref=${user.referralCode}`,
+    code: dbUser.referralCode,
+    link: `${baseUrl}/signup?ref=${dbUser.referralCode}`,
     totalReferrals: referrals.length,
     totalEarnings: earnings.reduce((s, e) => s + Number(e.amount), 0),
     referrals: referrals.map((r) => ({

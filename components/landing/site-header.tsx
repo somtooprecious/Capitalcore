@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useUserSession } from "@/hooks/use-user-session";
 import { CheckCircle2, ChevronDown, Menu, X } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -37,7 +37,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [balanceOpen, setBalanceOpen] = useState(false);
   const balanceRef = useRef<HTMLDivElement>(null);
-  const { data: session, status } = useSession();
+  const { user, status, isAuthenticated } = useUserSession();
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -49,10 +49,10 @@ export function SiteHeader() {
     return () => document.removeEventListener("mousedown", onClick);
   }, [balanceOpen]);
 
-  const isAuthenticated = status === "authenticated" && !!session?.user;
-  const initials = getInitials(session?.user?.name, session?.user?.email);
-  const displayBalance = isAuthenticated ? "$2,992.90" : "—";
-  const ownerAccess = isAuthenticated && isOwner(session?.user?.role);
+  const isAuthenticatedResolved = isAuthenticated && !!user;
+  const initials = getInitials(user?.name, user?.email);
+  const displayBalance = isAuthenticatedResolved ? "$2,992.90" : "—";
+  const ownerAccess = isAuthenticatedResolved && isOwner(user?.role);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/95 backdrop-blur">
@@ -91,7 +91,7 @@ export function SiteHeader() {
               {balanceOpen ? (
                 <div className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-xl border border-border bg-card shadow-xl">
                   <div className="border-b border-border px-3 py-2 text-xs text-muted">{h.balance}</div>
-                  {isAuthenticated ? (
+                  {isAuthenticatedResolved ? (
                     <>
                       <Link href="/wallet" className="block px-3 py-2 text-sm hover:bg-white/5" onClick={() => setBalanceOpen(false)}>
                         {h.wallet}
@@ -110,9 +110,9 @@ export function SiteHeader() {
             </div>
 
             <Link
-              href={isAuthenticated ? "/dashboard" : "/signin"}
+              href={isAuthenticatedResolved ? "/dashboard" : "/signin"}
               className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-xs font-bold text-white transition-opacity hover:opacity-90"
-              title={isAuthenticated ? h.yourAccount : h.signIn}
+              title={isAuthenticatedResolved ? h.yourAccount : h.signIn}
             >
               {initials}
             </Link>
@@ -142,7 +142,7 @@ export function SiteHeader() {
               {h.admin}
             </Link>
           ) : null}
-          {isAuthenticated ? (
+          {isAuthenticatedResolved ? (
             <Link href="/dashboard" className={cn(buttonVariants({ variant: "accent" }), "hidden sm:inline-flex")}>
               {h.dashboard}
             </Link>
@@ -173,7 +173,7 @@ export function SiteHeader() {
                   {h.admin}
                 </Link>
               ) : null}
-              {isAuthenticated ? (
+              {isAuthenticatedResolved ? (
                 <Link href="/dashboard" className={cn(buttonVariants({ variant: "accent" }), "w-full")} onClick={() => setOpen(false)}>
                   {h.dashboard}
                 </Link>

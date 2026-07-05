@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
@@ -30,7 +29,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
+  const user = await getAuthUser();
   const body = (await request.json()) as { message?: string; guestId?: string; roomId?: string };
 
   if (!body.message?.trim()) {
@@ -41,9 +40,9 @@ export async function POST(request: Request) {
 
   const created = await prisma.chatMessage.create({
     data: {
-      userId: session?.user?.id,
-      guestId: session?.user?.id ? null : body.guestId ?? `guest-${Date.now()}`,
-      sender: session?.user?.id ? "USER" : "GUEST",
+      userId: user?.id,
+      guestId: user?.id ? null : body.guestId ?? `guest-${Date.now()}`,
+      sender: user?.id ? "USER" : "GUEST",
       message: body.message.trim(),
       roomId,
     },

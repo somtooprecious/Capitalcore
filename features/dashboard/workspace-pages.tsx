@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { TradingViewWidget } from "@/components/trading-view-widget";
-import { TwoFactorPanel } from "@/features/dashboard/two-factor-panel";
+import { ClerkSecurityPanel } from "@/components/auth/clerk-security-panel";
 import { cn } from "@/lib/utils";
 
 function WorkspaceHeader({ title, description }: { title: string; description: string }) {
@@ -532,7 +532,7 @@ export function SettingsWorkspace() {
         description="Security preferences, notifications, and account controls."
       />
       <div className="grid max-w-2xl gap-4">
-        <TwoFactorPanel />
+        <ClerkSecurityPanel />
         <Card className="space-y-3 p-6">
           <h2 className="font-semibold">Email notifications</h2>
           <p className="text-sm text-muted">

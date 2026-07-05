@@ -10,8 +10,8 @@ const heroCopy = {
   },
   signup: {
     eyebrow: "Join CapitalCore AI",
-    title: "Start your AI trading journey",
-    body: "Create an account for crypto funding, configurable daily rewards, live charts, and transparent admin-managed platform rules.",
+    title: "Create your professional trading account",
+    body: "Register with your name, email, and password. We send a secure verification code to your inbox before you access the platform.",
   },
 } as const;
 

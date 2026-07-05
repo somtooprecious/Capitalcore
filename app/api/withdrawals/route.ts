@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireApiUser } from "@/lib/api-auth";
 import { createWithdrawalRequest } from "@/lib/withdrawals";
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireApiUser();
+  if ("error" in auth) return auth.error;
+  const { user } = auth;
 
   const body = (await req.json()) as { amount?: number; destination?: string };
   const amount = Number(body.amount);
@@ -18,7 +16,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const withdrawal = await createWithdrawalRequest(session.user.id, amount, destination);
+    const withdrawal = await createWithdrawalRequest(user.id, amount, destination);
     return NextResponse.json({
       id: withdrawal.id,
       reference: withdrawal.reference,
@@ -32,14 +30,13 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireApiUser();
+  if ("error" in auth) return auth.error;
+  const { user } = auth;
 
   const { prisma } = await import("@/lib/prisma");
   const withdrawals = await prisma.withdrawalRequest.findMany({
-    where: { userId: session.user.id },
+    where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     take: 50,
   });

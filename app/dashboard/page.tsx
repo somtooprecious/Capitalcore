@@ -1,25 +1,24 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/session";
 import { getDashboardData } from "@/lib/dashboard-data";
 import { DashboardLayout } from "@/features/dashboard/dashboard-layout";
 import { DashboardHome } from "@/features/dashboard/dashboard-home";
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  const user = await getAuthUser();
+  if (!user) {
     redirect("/signin");
   }
 
-  const data = await getDashboardData(session.user.id);
+  const data = await getDashboardData(user.id);
 
   return (
-    <DashboardLayout user={{ email: session.user.email }}>
+    <DashboardLayout user={{ email: user.email, role: user.role }}>
       <DashboardHome
         user={{
-          name: session.user.name,
-          email: session.user.email,
-          kycStatus: session.user.kycStatus ?? "PENDING",
+          name: user.name,
+          email: user.email,
+          kycStatus: user.kycStatus ?? "PENDING",
         }}
         data={data}
       />

@@ -1,7 +1,6 @@
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireApiUser } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 
 const CRYPTO_ADDRESSES: Record<string, string> = {
@@ -11,10 +10,9 @@ const CRYPTO_ADDRESSES: Record<string, string> = {
 };
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireApiUser();
+  if ("error" in auth) return auth.error;
+  const { user } = auth;
 
   const body = (await req.json()) as { amount?: number; asset?: string };
   const amount = Number(body.amount);
@@ -34,7 +32,7 @@ export async function POST(req: Request) {
   await prisma.$transaction([
     prisma.payment.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         amount,
         currency: "USD",
         provider: "crypto",
@@ -45,7 +43,7 @@ export async function POST(req: Request) {
     }),
     prisma.transaction.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         type: "DEPOSIT",
         amount,
         status: "PENDING",

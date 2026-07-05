@@ -1,16 +1,15 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/session";
 import { DashboardLayout } from "@/features/dashboard/dashboard-layout";
 
 export async function requireDashboardSession(children: React.ReactNode) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  const user = await getAuthUser();
+  if (!user) {
     redirect("/signin");
   }
 
   return (
-    <DashboardLayout user={{ email: session.user.email, role: session.user.role }}>
+    <DashboardLayout user={{ email: user.email, role: user.role }}>
       {children}
     </DashboardLayout>
   );

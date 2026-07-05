@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { useClerk } from "@clerk/nextjs";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,7 @@ type DashboardLayoutProps = {
 
 export function DashboardLayout({ user, children }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const { signOut } = useClerk();
   const showAdmin = user.role === "OWNER";
 
   return (
@@ -73,7 +74,7 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
           variant="outline"
           className="mt-4 w-full justify-start gap-2"
           type="button"
-          onClick={() => signOut({ callbackUrl: "/" })}
+          onClick={() => signOut({ redirectUrl: "/" })}
         >
           <LogOut className="h-4 w-4" aria-hidden />
           Sign out

@@ -1,37 +1,44 @@
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { ROLES } from "@/lib/roles";
 
-export async function middleware(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const pathname = req.nextUrl.pathname;
+const isProtectedRoute = createRouteMatcher([
+  "/admin(.*)",
+  "/dashboard(.*)",
+  "/deposits(.*)",
+  "/withdrawals(.*)",
+  "/transfers(.*)",
+  "/trading(.*)",
+  "/my-plans(.*)",
+  "/settings(.*)",
+  "/daily-tasks(.*)",
+  "/earnings(.*)",
+  "/referrals(.*)",
+  "/notifications(.*)",
+  "/support-center(.*)",
+]);
 
-  if (!token) {
-    return NextResponse.redirect(new URL("/signin", req.url));
+const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
+
+export default clerkMiddleware(async (auth, req) => {
+  if (!isProtectedRoute(req)) return;
+
+  await auth.protect();
+
+  if (isAdminRoute(req)) {
+    const { sessionClaims } = await auth();
+    const metadata = (sessionClaims?.publicMetadata ?? sessionClaims?.metadata ?? {}) as {
+      role?: string;
+    };
+    if (metadata.role !== ROLES.OWNER) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
   }
-
-  if (pathname.startsWith("/admin") && token.role !== ROLES.OWNER) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
-  }
-
-  return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: [
-    "/admin/:path*",
-    "/dashboard/:path*",
-    "/deposits/:path*",
-    "/withdrawals/:path*",
-    "/transfers/:path*",
-    "/trading/:path*",
-    "/my-plans/:path*",
-    "/settings/:path*",
-    "/daily-tasks/:path*",
-    "/earnings/:path*",
-    "/referrals/:path*",
-    "/notifications/:path*",
-    "/support-center/:path*",
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
   ],
 };

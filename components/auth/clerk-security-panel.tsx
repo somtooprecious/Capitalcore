@@ -1,0 +1,30 @@
+"use client";
+
+import { UserProfile } from "@clerk/nextjs";
+import { Card } from "@/components/ui/card";
+import { clerkAppearance } from "@/lib/clerk-appearance";
+
+export function ClerkSecurityPanel() {
+  return (
+    <Card className="overflow-hidden p-0">
+      <div className="border-b border-border px-6 py-4">
+        <h3 className="text-lg font-semibold">Account security</h3>
+        <p className="mt-1 text-sm text-muted">
+          Manage your password, email verification, and sign-in methods. After signup, Clerk sends a
+          one-time verification code to your inbox before your account is activated.
+        </p>
+      </div>
+      <UserProfile
+        appearance={{
+          ...clerkAppearance,
+          elements: {
+            ...clerkAppearance.elements,
+            rootBox: "w-full",
+            card: "shadow-none border-0 bg-transparent",
+          },
+        }}
+        routing="hash"
+      />
+    </Card>
+  );
+}

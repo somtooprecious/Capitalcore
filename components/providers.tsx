@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { SessionProvider, useSession } from "next-auth/react";
+import { useAuth } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import { LiveChatWidget } from "@/components/live-chat-widget";
 import type { Currency, Locale } from "@/lib/i18n";
@@ -31,10 +31,10 @@ function LocalePreferencesSync({
   setLocaleState: (locale: Locale) => void;
   setCurrencyState: (currency: Currency) => void;
 }) {
-  const { status } = useSession();
+  const { isSignedIn, isLoaded } = useAuth();
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!isLoaded || !isSignedIn) return;
     void fetch("/api/user/preferences")
       .then((r) => r.json())
       .then((data: { preferences?: { preferredLanguage?: string; preferredCurrency?: string } }) => {
@@ -46,9 +46,13 @@ function LocalePreferencesSync({
           setCurrencyState(p.preferredCurrency as Currency);
         }
       });
-  }, [status, setLocaleState, setCurrencyState]);
+  }, [isLoaded, isSignedIn, setLocaleState, setCurrencyState]);
 
   return null;
+}
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return <AppProviders>{children}</AppProviders>;
 }
 
 function AppProviders({ children }: { children: React.ReactNode }) {
@@ -119,14 +123,6 @@ function AppProviders({ children }: { children: React.ReactNode }) {
         </LocaleContext.Provider>
       </ThemeContext.Provider>
     </QueryClientProvider>
-  );
-}
-
-export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <SessionProvider>
-      <AppProviders>{children}</AppProviders>
-    </SessionProvider>
   );
 }
 
