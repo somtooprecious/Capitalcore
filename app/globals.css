@@ -63,3 +63,26 @@ body {
     animation: none;
   }
 }
+
+@layer clerk {
+  .auth-clerk-shell .cl-rootBox,
+  .auth-clerk-shell .cl-card,
+  .auth-clerk-shell .cl-headerTitle,
+  .auth-clerk-shell .cl-headerSubtitle,
+  .auth-clerk-shell .cl-formFieldLabel,
+  .auth-clerk-shell .cl-formFieldHintText,
+  .auth-clerk-shell .cl-footerActionText,
+  .auth-clerk-shell .cl-dividerText,
+  .auth-clerk-shell .cl-alertText {
+    color: inherit;
+  }
+
+  .auth-clerk-shell .cl-formFieldInput {
+    color: #f8fafc;
+  }
+
+  .auth-clerk-shell .cl-formFieldInput::placeholder {
+    color: #64748b;
+    opacity: 1;
+  }
+}
