@@ -198,3 +198,46 @@ body {
 .clerk-profile-shell .cl-profileSectionItem {
   color: #cbd5e1 !important;
 }
+
+.clerk-profile-shell .cc-profile-password-content {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 0.625rem !important;
+}
+
+.clerk-profile-shell .cc-profile-password-dots {
+  letter-spacing: 0.15em;
+  color: #cbd5e1 !important;
+}
+
+.clerk-profile-shell .cc-profile-password-dots--revealed {
+  letter-spacing: normal !important;
+  font-size: 0.875rem !important;
+  color: #93c5fd !important;
+}
+
+.clerk-profile-shell .cc-profile-password-eye {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 2rem !important;
+  height: 2rem !important;
+  flex-shrink: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  color: #94a3b8 !important;
+  cursor: pointer !important;
+  border-radius: 0.375rem !important;
+  padding: 0 !important;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.clerk-profile-shell .cc-profile-password-eye:hover {
+  color: #f8fafc !important;
+  background-color: rgb(255 255 255 / 0.06) !important;
+}
+
+.clerk-profile-shell .cc-profile-password-eye[aria-pressed="true"] {
+  color: #93c5fd !important;
+}
