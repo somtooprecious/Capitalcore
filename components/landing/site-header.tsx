@@ -10,6 +10,9 @@ import { LocaleSwitcher } from "@/components/locale-switcher";
 import { MarketTicker } from "@/components/landing/market-ticker";
 import { NotificationBell } from "@/components/landing/notification-bell";
 import { useTranslations } from "@/hooks/use-translations";
+import { useWalletBalance } from "@/hooks/use-wallet-balance";
+import { useLocale } from "@/components/providers";
+import { formatCurrency, type Currency } from "@/lib/i18n";
 import { isOwner } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +40,9 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [balanceOpen, setBalanceOpen] = useState(false);
   const balanceRef = useRef<HTMLDivElement>(null);
-  const { user, status, isAuthenticated } = useUserSession();
+  const { user, isAuthenticated } = useUserSession();
+  const { currency: localeCurrency } = useLocale();
+  const { balance, availableBalance, lockedBalance, isLoading } = useWalletBalance();
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -51,7 +56,12 @@ export function SiteHeader() {
 
   const isAuthenticatedResolved = isAuthenticated && !!user;
   const initials = getInitials(user?.name, user?.email);
-  const displayBalance = isAuthenticatedResolved ? "$2,992.90" : "—";
+  const activeCurrency = localeCurrency as Currency;
+  const displayBalance = isAuthenticatedResolved
+    ? isLoading
+      ? "···"
+      : formatCurrency(balance, activeCurrency)
+    : "—";
   const ownerAccess = isAuthenticatedResolved && isOwner(user?.role);
 
   return (
@@ -89,11 +99,30 @@ export function SiteHeader() {
                 <ChevronDown className="h-3.5 w-3.5 text-muted" aria-hidden />
               </button>
               {balanceOpen ? (
-                <div className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-xl border border-border bg-card shadow-xl">
-                  <div className="border-b border-border px-3 py-2 text-xs text-muted">{h.balance}</div>
+                <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-card shadow-xl">
+                  <div className="border-b border-border px-3 py-2.5">
+                    <p className="text-xs text-muted">{h.balance}</p>
+                    <p className="mt-1 text-base font-semibold tabular-nums text-foreground">
+                      {isLoading ? "···" : formatCurrency(balance, activeCurrency)}
+                    </p>
+                  </div>
                   {isAuthenticatedResolved ? (
                     <>
-                      <Link href="/wallet" className="block px-3 py-2 text-sm hover:bg-white/5" onClick={() => setBalanceOpen(false)}>
+                      <div className="space-y-1 border-b border-border px-3 py-2 text-xs">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-muted">Available</span>
+                          <span className="font-medium tabular-nums text-foreground">
+                            {isLoading ? "—" : formatCurrency(availableBalance, activeCurrency)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-muted">Locked</span>
+                          <span className="font-medium tabular-nums text-foreground">
+                            {isLoading ? "—" : formatCurrency(lockedBalance, activeCurrency)}
+                          </span>
+                        </div>
+                      </div>
+                      <Link href="/deposits" className="block px-3 py-2 text-sm hover:bg-white/5" onClick={() => setBalanceOpen(false)}>
                         {h.wallet}
                       </Link>
                       <Link href="/dashboard" className="block px-3 py-2 text-sm hover:bg-white/5" onClick={() => setBalanceOpen(false)}>
