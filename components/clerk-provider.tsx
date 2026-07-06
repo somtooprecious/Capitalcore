@@ -1,6 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { Providers } from "@/components/providers";
 import { clerkAppearance } from "@/lib/clerk-appearance";
+import { clerkLocalization } from "@/lib/clerk-localization";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
@@ -8,10 +9,8 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       signInUrl="/signin"
       signUpUrl="/signup"
       afterSignOutUrl="/"
-      appearance={{
-        ...clerkAppearance,
-        cssLayerName: "clerk",
-      }}
+      localization={clerkLocalization}
+      appearance={clerkAppearance}
     >
       <Providers>{children}</Providers>
     </ClerkProvider>

@@ -64,25 +64,60 @@ body {
   }
 }
 
-@layer clerk {
-  .auth-clerk-shell .cl-rootBox,
-  .auth-clerk-shell .cl-card,
-  .auth-clerk-shell .cl-headerTitle,
-  .auth-clerk-shell .cl-headerSubtitle,
-  .auth-clerk-shell .cl-formFieldLabel,
-  .auth-clerk-shell .cl-formFieldHintText,
-  .auth-clerk-shell .cl-footerActionText,
-  .auth-clerk-shell .cl-dividerText,
-  .auth-clerk-shell .cl-alertText {
-    color: inherit;
-  }
+/* Clerk auth — force readable text regardless of site light/dark theme */
+.auth-clerk-shell {
+  color: #f1f5f9;
+}
 
-  .auth-clerk-shell .cl-formFieldInput {
-    color: #f8fafc;
-  }
+.auth-clerk-shell .cl-headerTitle,
+.auth-clerk-shell .cl-formHeaderTitle {
+  color: #f8fafc !important;
+}
 
-  .auth-clerk-shell .cl-formFieldInput::placeholder {
-    color: #64748b;
-    opacity: 1;
-  }
+.auth-clerk-shell .cl-headerSubtitle,
+.auth-clerk-shell .cl-formHeaderSubtitle {
+  color: #94a3b8 !important;
+}
+
+.auth-clerk-shell .cl-formFieldLabel {
+  color: #e2e8f0 !important;
+}
+
+.auth-clerk-shell .cl-formFieldHintText,
+.auth-clerk-shell .cl-footerActionText,
+.auth-clerk-shell .cl-dividerText,
+.auth-clerk-shell .cl-footerPages,
+.auth-clerk-shell .cl-footerPagesLink {
+  color: #94a3b8 !important;
+}
+
+.auth-clerk-shell .cl-socialButtonsBlockButton,
+.auth-clerk-shell .cl-socialButtonsBlockButtonText {
+  color: #f1f5f9 !important;
+}
+
+.auth-clerk-shell .cl-alertText,
+.auth-clerk-shell .cl-identityPreviewText {
+  color: #e2e8f0 !important;
+}
+
+.auth-clerk-shell .cl-formFieldInput,
+.auth-clerk-shell .cl-otpCodeFieldInput {
+  color: #0f172a !important;
+  background-color: #f1f5f9 !important;
+}
+
+.auth-clerk-shell .cl-formFieldInput::placeholder {
+  color: #64748b !important;
+  opacity: 1;
+}
+
+.auth-clerk-shell .cl-footerActionLink,
+.auth-clerk-shell .cl-formResendCodeLink,
+.auth-clerk-shell .cl-identityPreviewEditButton {
+  color: #93c5fd !important;
+}
+
+.auth-clerk-shell .cl-formFieldErrorText {
+  color: #f87171 !important;
 }
