@@ -121,3 +121,58 @@ body {
 .auth-clerk-shell .cl-formFieldErrorText {
   color: #f87171 !important;
 }
+
+.auth-clerk-shell .cl-formFieldInputGroup,
+.clerk-profile-shell .cl-formFieldInputGroup {
+  position: relative;
+}
+
+.auth-clerk-shell .cl-formFieldInputShowPasswordButton,
+.clerk-profile-shell .cl-formFieldInputShowPasswordButton {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 2.25rem !important;
+  min-height: 2.25rem !important;
+  cursor: pointer !important;
+}
+
+.auth-clerk-shell .cl-formFieldInputShowPasswordButton,
+.auth-clerk-shell .cl-formFieldInputShowPasswordIcon {
+  color: #475569 !important;
+}
+
+.auth-clerk-shell .cl-formFieldInputShowPasswordButton:hover,
+.auth-clerk-shell .cl-formFieldInputShowPasswordButton:hover .cl-formFieldInputShowPasswordIcon {
+  color: #0f172a !important;
+}
+
+.clerk-profile-shell .cl-formFieldInputShowPasswordButton,
+.clerk-profile-shell .cl-formFieldInputShowPasswordIcon {
+  color: #cbd5e1 !important;
+}
+
+.clerk-profile-shell .cl-formFieldInputShowPasswordButton:hover,
+.clerk-profile-shell .cl-formFieldInputShowPasswordButton:hover .cl-formFieldInputShowPasswordIcon {
+  color: #f8fafc !important;
+}
+
+.clerk-profile-shell .cl-formFieldInput {
+  color: #f8fafc !important;
+  background-color: #111827 !important;
+  padding-right: 2.5rem !important;
+}
+
+.clerk-profile-shell .cl-headerTitle,
+.clerk-profile-shell .cl-profileSectionTitle,
+.clerk-profile-shell .cl-profileSectionTitleText {
+  color: #f8fafc !important;
+}
+
+.clerk-profile-shell .cl-profileSectionContent,
+.clerk-profile-shell .cl-profileSectionPrimaryButton,
+.clerk-profile-shell .cl-profileSectionItem {
+  color: #cbd5e1 !important;
+}

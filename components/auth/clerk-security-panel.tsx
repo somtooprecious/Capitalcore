@@ -2,7 +2,8 @@
 
 import { UserProfile } from "@clerk/nextjs";
 import { Card } from "@/components/ui/card";
-import { clerkAppearance } from "@/lib/clerk-appearance";
+import { ProfilePasswordRow } from "@/components/auth/profile-password-row";
+import { clerkProfileAppearance } from "@/lib/clerk-profile-appearance";
 
 export function ClerkSecurityPanel() {
   return (
@@ -10,21 +11,14 @@ export function ClerkSecurityPanel() {
       <div className="border-b border-border px-6 py-4">
         <h3 className="text-lg font-semibold">Account security</h3>
         <p className="mt-1 text-sm text-muted">
-          Manage your password, email verification, and sign-in methods. After signup, Clerk sends a
-          one-time verification code to your inbox before your account is activated.
+          Manage your password, email verification, and sign-in methods. Use the eye icon on password
+          fields to show or hide what you type when updating your password.
         </p>
       </div>
-      <UserProfile
-        appearance={{
-          ...clerkAppearance,
-          elements: {
-            ...clerkAppearance.elements,
-            rootBox: "w-full",
-            card: "shadow-none border-0 bg-transparent",
-          },
-        }}
-        routing="hash"
-      />
+      <ProfilePasswordRow />
+      <div className="clerk-profile-shell px-2 pb-2 sm:px-4">
+        <UserProfile appearance={clerkProfileAppearance} routing="hash" />
+      </div>
     </Card>
   );
 }
