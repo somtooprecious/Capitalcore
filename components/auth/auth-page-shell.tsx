@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AuthHeroPanel } from "@/features/auth/auth-hero-panel";
+import { ClerkPasswordEyeEnhancer } from "@/components/auth/clerk-password-eye-enhancer";
 import { cn } from "@/lib/utils";
 
 const mobileCopy = {
@@ -39,7 +40,10 @@ export function AuthPageShell({
         </header>
 
         <div className="flex flex-1 items-center justify-center px-6 py-8 sm:px-10 sm:py-10">
-          <div className={cn("auth-clerk-shell w-full max-w-md")}>{children}</div>
+          <div className={cn("auth-clerk-shell w-full max-w-md")}>
+            <ClerkPasswordEyeEnhancer />
+            {children}
+          </div>
         </div>
 
         <p className="border-t border-white/10 px-6 py-4 text-center text-xs text-slate-500 md:hidden">

@@ -123,46 +123,65 @@ body {
 }
 
 .auth-clerk-shell .cl-formFieldInputGroup,
-.clerk-profile-shell .cl-formFieldInputGroup {
-  position: relative;
+.clerk-profile-shell .cl-formFieldInputGroup,
+.cc-password-field {
+  position: relative !important;
+  width: 100%;
+}
+
+.auth-clerk-shell .cl-formFieldInputGroup .cl-formFieldInput,
+.auth-clerk-shell .cc-password-field input[type="password"],
+.auth-clerk-shell .cc-password-field input[type="text"],
+.clerk-profile-shell .cl-formFieldInputGroup .cl-formFieldInput,
+.clerk-profile-shell .cc-password-field input[type="password"],
+.clerk-profile-shell .cc-password-field input[type="text"] {
+  width: 100% !important;
+  padding-right: 2.75rem !important;
 }
 
 .auth-clerk-shell .cl-formFieldInputShowPasswordButton,
-.clerk-profile-shell .cl-formFieldInputShowPasswordButton {
+.clerk-profile-shell .cl-formFieldInputShowPasswordButton,
+.cc-password-eye-btn {
+  position: absolute !important;
+  right: 0.5rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 20 !important;
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
   align-items: center !important;
   justify-content: center !important;
-  min-width: 2.25rem !important;
-  min-height: 2.25rem !important;
+  min-width: 2rem !important;
+  min-height: 2rem !important;
   cursor: pointer !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
 }
 
 .auth-clerk-shell .cl-formFieldInputShowPasswordButton,
-.auth-clerk-shell .cl-formFieldInputShowPasswordIcon {
+.auth-clerk-shell .cl-formFieldInputShowPasswordIcon,
+.auth-clerk-shell .cc-password-eye-btn {
   color: #475569 !important;
 }
 
 .auth-clerk-shell .cl-formFieldInputShowPasswordButton:hover,
-.auth-clerk-shell .cl-formFieldInputShowPasswordButton:hover .cl-formFieldInputShowPasswordIcon {
+.auth-clerk-shell .cl-formFieldInputShowPasswordButton:hover .cl-formFieldInputShowPasswordIcon,
+.auth-clerk-shell .cc-password-eye-btn:hover {
   color: #0f172a !important;
 }
 
 .clerk-profile-shell .cl-formFieldInputShowPasswordButton,
-.clerk-profile-shell .cl-formFieldInputShowPasswordIcon {
+.clerk-profile-shell .cl-formFieldInputShowPasswordIcon,
+.clerk-profile-shell .cc-password-eye-btn {
   color: #cbd5e1 !important;
 }
 
 .clerk-profile-shell .cl-formFieldInputShowPasswordButton:hover,
-.clerk-profile-shell .cl-formFieldInputShowPasswordButton:hover .cl-formFieldInputShowPasswordIcon {
+.clerk-profile-shell .cl-formFieldInputShowPasswordButton:hover .cl-formFieldInputShowPasswordIcon,
+.clerk-profile-shell .cc-password-eye-btn:hover {
   color: #f8fafc !important;
-}
-
-.clerk-profile-shell .cl-formFieldInput {
-  color: #f8fafc !important;
-  background-color: #111827 !important;
-  padding-right: 2.5rem !important;
 }
 
 .clerk-profile-shell .cl-headerTitle,

@@ -30,13 +30,14 @@ export const clerkAppearance = {
     formButtonPrimary:
       "bg-primary hover:bg-primary/90 !text-white font-semibold shadow-lg shadow-primary/25 normal-case",
     formFieldInput:
-      "bg-slate-100 border-slate-300 !text-slate-900 placeholder:text-slate-500 focus:border-primary/60 pr-10",
+      "bg-slate-100 border-slate-300 !text-slate-900 placeholder:text-slate-500 focus:border-primary/60 !pr-11 w-full",
+    formFieldInputGroup: "relative flex w-full items-center",
     formFieldLabel: "!text-slate-200 font-medium text-sm",
     formFieldHintText: "!text-slate-400 text-xs",
     formFieldSuccessText: "!text-emerald-400 text-xs",
     formFieldErrorText: "!text-red-400 text-xs",
     formFieldInputShowPasswordButton:
-      "!text-slate-600 hover:!text-slate-900 opacity-100 flex items-center justify-center min-w-9 min-h-9 shrink-0 z-10",
+      "absolute right-2 top-1/2 -translate-y-1/2 !text-slate-600 hover:!text-slate-900 opacity-100 flex items-center justify-center min-w-8 min-h-8 shrink-0 z-20",
     formFieldInputShowPasswordIcon: "!text-slate-600 w-4 h-4",
     footer: "bg-transparent",
     footerActionText: "!text-slate-400 text-sm",

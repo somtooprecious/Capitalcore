@@ -24,11 +24,11 @@ export const clerkProfileAppearance = {
     profileSectionPrimaryButton: "!text-slate-300",
     profileSectionItem: "!text-slate-300 border-white/10",
     profileSectionItemListButton: "!text-slate-300",
-    profileSection__password: "hidden",
+    formFieldInputGroup: "relative flex w-full items-center",
     formFieldInput:
-      "bg-[#111827] border-white/15 !text-slate-50 placeholder:text-slate-500 focus:border-primary/60",
+      "bg-[#111827] border-white/15 !text-slate-50 placeholder:text-slate-500 focus:border-primary/60 !pr-11 w-full",
     formFieldInputShowPasswordButton:
-      "!text-slate-300 hover:!text-slate-50 opacity-100 flex items-center justify-center min-w-9 min-h-9",
+      "absolute right-2 top-1/2 -translate-y-1/2 !text-slate-300 hover:!text-slate-50 opacity-100 flex items-center justify-center min-w-8 min-h-8 z-20",
     formFieldInputShowPasswordIcon: "!text-slate-300 w-4 h-4",
     formFieldLabel: "!text-slate-200",
     formButtonPrimary: "bg-primary hover:bg-primary/90 !text-white font-semibold",
