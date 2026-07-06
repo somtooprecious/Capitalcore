@@ -51,7 +51,6 @@ const pages: Record<string, { title: string; description: string }> = {
   referrals: { title: "Referrals", description: "Manage referral links, invites, commission earnings, and payout history." },
   "support-center": { title: "Support Center", description: "Submit and manage support tickets with response tracking." },
   support: { title: "Support", description: "Contact expert support and manage ticket conversations." },
-  settings: { title: "Settings", description: "Manage PIN, 2FA, email preference, and security controls." },
   "admin-panel": { title: "Admin Panel", description: "Admin controls for plans, users, payments, and platform operations." },
   "terms-and-conditions": { title: "Terms & Conditions", description: "Platform terms governing service usage and legal obligations." },
   "privacy-policy": { title: "Privacy Policy", description: "How your data is processed, secured, and retained across platform services." },

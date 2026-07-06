@@ -13,13 +13,18 @@ export async function getAuthUser(): Promise<User | null> {
   const clerkUser = await currentUser();
   if (!clerkUser) return null;
 
-  return syncClerkUserToDatabase({
-    id: clerkUser.id,
-    emailAddresses: clerkUser.emailAddresses.map((e) => ({ emailAddress: e.emailAddress })),
-    firstName: clerkUser.firstName,
-    lastName: clerkUser.lastName,
-    unsafeMetadata: clerkUser.unsafeMetadata as Record<string, unknown>,
-  });
+  try {
+    return await syncClerkUserToDatabase({
+      id: clerkUser.id,
+      emailAddresses: clerkUser.emailAddresses.map((e) => ({ emailAddress: e.emailAddress })),
+      firstName: clerkUser.firstName,
+      lastName: clerkUser.lastName,
+      unsafeMetadata: clerkUser.unsafeMetadata as Record<string, unknown>,
+    });
+  } catch (error) {
+    console.error("[auth] Failed to sync Clerk user:", error);
+    return null;
+  }
 }
 
 export async function requireAuthUser(): Promise<User | null> {
