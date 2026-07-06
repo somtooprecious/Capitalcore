@@ -37,6 +37,7 @@ export async function syncClerkUserToDatabase(clerkUser: ClerkUserPayload) {
         role: user.role === ROLES.OWNER || email === ownerEmail ? ROLES.OWNER : user.role,
       },
     });
+    await ensureWallet(user.id);
   } else {
     const referralCode = generateReferralCode(email);
     let referredById: string | undefined;
@@ -73,17 +74,23 @@ export async function syncClerkUserToDatabase(clerkUser: ClerkUserPayload) {
       });
     }
 
-    await sendWelcomeEmail(email, name);
+    await sendWelcomeEmail(email, name).catch((error) => {
+      console.error("[clerk-sync] Welcome email failed:", error);
+    });
   }
 
-  const client = await clerkClient();
-  await client.users.updateUserMetadata(clerkUser.id, {
-    publicMetadata: {
-      role: user.role,
-      prismaUserId: user.id,
-      kycStatus: user.kycStatus,
-    },
-  });
+  try {
+    const client = await clerkClient();
+    await client.users.updateUserMetadata(clerkUser.id, {
+      publicMetadata: {
+        role: user.role,
+        prismaUserId: user.id,
+        kycStatus: user.kycStatus,
+      },
+    });
+  } catch (error) {
+    console.error("[clerk-sync] Failed to update Clerk metadata:", error);
+  }
 
   return user;
 }

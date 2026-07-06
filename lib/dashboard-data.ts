@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getDailyTaskStatus } from "@/lib/daily-tasks";
+import { ensureWallet } from "@/lib/wallet";
 
 function toNumber(value: { toString(): string } | number | null | undefined) {
   if (value == null) return 0;
@@ -31,6 +32,8 @@ export type DashboardData = {
 };
 
 export async function getDashboardData(userId: string): Promise<DashboardData> {
+  await ensureWallet(userId);
+
   const [
     wallet,
     activePlans,
