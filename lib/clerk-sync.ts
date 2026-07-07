@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sendWelcomeEmail } from "@/lib/email";
 import { generateReferralCode } from "@/lib/platform-config";
 import { ensureWallet } from "@/lib/wallet";
-import { ROLES } from "@/lib/roles";
+import { ROLES, isOwnerEmail } from "@/lib/roles";
 
 type ClerkUserPayload = {
   id: string;
@@ -20,8 +20,8 @@ export async function syncClerkUserToDatabase(clerkUser: ClerkUserPayload) {
   }
 
   const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ").trim() || null;
-  const ownerEmail = process.env.OWNER_EMAIL?.toLowerCase().trim();
-  const defaultRole = email === ownerEmail ? ROLES.OWNER : ROLES.USER;
+  const emailIsOwner = isOwnerEmail(email);
+  const defaultRole = emailIsOwner ? ROLES.OWNER : ROLES.USER;
 
   let user = await prisma.user.findFirst({
     where: { OR: [{ clerkId: clerkUser.id }, { email }] },
@@ -34,7 +34,7 @@ export async function syncClerkUserToDatabase(clerkUser: ClerkUserPayload) {
         clerkId: clerkUser.id,
         name: name ?? user.name,
         emailVerified: user.emailVerified ?? new Date(),
-        role: user.role === ROLES.OWNER || email === ownerEmail ? ROLES.OWNER : user.role,
+        role: user.role === ROLES.OWNER || emailIsOwner ? ROLES.OWNER : user.role,
       },
     });
     await ensureWallet(user.id);
