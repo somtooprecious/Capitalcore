@@ -6,6 +6,7 @@ import {
   Activity,
   CreditCard,
   FileText,
+  Layers,
   Pencil,
   RefreshCw,
   Users,
@@ -21,11 +22,12 @@ import type { AdminData } from "@/lib/admin-data";
 import { AdminSettingsPanel } from "@/features/admin/admin-settings-panel";
 import { AdminBlogPanel } from "@/features/admin/admin-blog-panel";
 
-type TabId = "overview" | "users" | "payments" | "withdrawals" | "blog" | "settings";
+type TabId = "overview" | "users" | "plans" | "payments" | "withdrawals" | "blog" | "settings";
 
 const tabs: { id: TabId; label: string; icon: typeof Activity }[] = [
   { id: "overview", label: "Overview", icon: Activity },
   { id: "users", label: "Users", icon: Users },
+  { id: "plans", label: "Plans", icon: Layers },
   { id: "payments", label: "Payments", icon: CreditCard },
   { id: "withdrawals", label: "Withdrawals", icon: Wallet },
   { id: "blog", label: "Blog CMS", icon: FileText },
@@ -294,6 +296,9 @@ export function AdminConsole({ data }: { data: AdminData }) {
               <Button variant="outline" onClick={() => setTab("users")}>
                 Manage users
               </Button>
+              <Button variant="outline" onClick={() => setTab("plans")}>
+                View plans
+              </Button>
               <Button variant="outline" onClick={() => setTab("payments")}>
                 Review payments
               </Button>
@@ -355,6 +360,73 @@ export function AdminConsole({ data }: { data: AdminData }) {
             </table>
           </div>
         </Card>
+      ) : null}
+
+      {tab === "plans" ? (
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {data.investmentPlans.map((plan) => (
+              <Card key={plan.id} className="p-5">
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-foreground">{plan.name}</p>
+                  <StatusBadge status={plan.isActive ? "ACTIVE" : "INACTIVE"} />
+                </div>
+                <p className="mt-2 text-2xl font-bold tabular-nums">{formatMoney(plan.minDeposit)}</p>
+                <p className="mt-1 text-sm text-muted">
+                  {plan.roiPercent}% daily · {plan.durationDay} days
+                </p>
+                <p className="mt-1 text-sm text-green-400">
+                  {formatMoney((plan.minDeposit * plan.roiPercent) / 100)} / day
+                </p>
+              </Card>
+            ))}
+          </div>
+
+          <Card className="overflow-hidden p-0">
+            <div className="border-b border-border px-5 py-4">
+              <h2 className="font-semibold">Plan subscriptions</h2>
+              <p className="text-sm text-muted">Users who have activated an investment plan.</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-card/60">
+                    {["User", "Plan", "Amount", "Status", "Started", "Ends"].map((col) => (
+                      <th key={col} className="px-5 py-3 font-semibold">
+                        {col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {data.recentPlans.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-5 py-8 text-center text-muted">
+                        No plan subscriptions yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    data.recentPlans.map((p) => (
+                      <tr key={p.id} className="bg-background/40">
+                        <td className="px-5 py-3">
+                          <p className="font-medium">{p.user}</p>
+                          <p className="text-xs text-muted">{p.email}</p>
+                        </td>
+                        <td className="px-5 py-3">{p.planName}</td>
+                        <td className="px-5 py-3 tabular-nums">{formatMoney(p.amount)}</td>
+                        <td className="px-5 py-3">
+                          <StatusBadge status={p.status} />
+                        </td>
+                        <td className="px-5 py-3 text-muted">{formatDate(p.startDate)}</td>
+                        <td className="px-5 py-3 text-muted">{formatDate(p.endDate)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
       ) : null}
 
       {tab === "payments" ? (

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 export const dashboardMenu = [
   { label: "Dashboard", href: "/dashboard" },
+  { label: "Investment plans", href: "/investment-plans" },
   { label: "Trading", href: "/trading" },
   { label: "Daily task", href: "/daily-tasks" },
   { label: "Earnings", href: "/earnings" },

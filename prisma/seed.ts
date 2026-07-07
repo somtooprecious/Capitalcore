@@ -42,44 +42,8 @@ async function main() {
 
   console.log(`Owner account: ${ownerEmail} / ${ownerPassword}`);
 
-  const plans = [
-    {
-      name: "Starter",
-      minDeposit: 100,
-      roiPercent: 6,
-      durationDay: 14,
-      features: ["Beginner friendly", "Portfolio insights"],
-    },
-    {
-      name: "Silver",
-      minDeposit: 1000,
-      roiPercent: 12,
-      durationDay: 30,
-      features: ["Priority support", "Lower fees"],
-    },
-    {
-      name: "Gold",
-      minDeposit: 5000,
-      roiPercent: 18,
-      durationDay: 45,
-      features: ["Dedicated analyst", "Advanced tools"],
-    },
-    {
-      name: "Premium",
-      minDeposit: 20000,
-      roiPercent: 25,
-      durationDay: 60,
-      features: ["Private desk", "Custom strategies"],
-    },
-  ];
-
-  for (const plan of plans) {
-    await prisma.investmentPlan.upsert({
-      where: { name: plan.name },
-      update: plan,
-      create: plan,
-    });
-  }
+  const { ensureInvestmentPlans } = await import("../lib/investment-plans");
+  await ensureInvestmentPlans();
 
   const { seedPlatformDefaults } = await import("../lib/platform-config");
   await seedPlatformDefaults();

@@ -1,13 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatUsd } from "@/lib/format";
 import { toast } from "sonner";
+
+type ActivePlan = {
+  id: string;
+  name: string;
+  amount: number;
+  dailyEarning: number;
+  endDate: string;
+};
 
 type TaskStatus = {
   task: { id: string; title: string; description: string | null; rewardType: string; rewardValue: number };
+  activePlan: ActivePlan | null;
+  dailyRoiPercent: number;
+  todayReward: number | null;
   completedToday: boolean;
   streak: number;
   nextReset: string;
@@ -101,17 +114,37 @@ export function DailyTasksWorkspace() {
             </span>
           </div>
           <p className="text-sm leading-relaxed text-muted">{data.task.description}</p>
-          <p className="text-sm text-foreground">
-            Reward:{" "}
-            <span className="font-semibold text-amber-400">
-              {data.task.rewardType === "PERCENT"
-                ? `${data.task.rewardValue}% of balance`
-                : `$${data.task.rewardValue.toFixed(2)}`}
-            </span>
-          </p>
+
+          {data.activePlan ? (
+            <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-4">
+              <p className="text-xs uppercase tracking-wide text-green-400">
+                {data.activePlan.name} plan · {formatUsd(data.activePlan.amount)}
+              </p>
+              <p className="mt-1 text-sm text-foreground">
+                Today&apos;s reward:{" "}
+                <span className="font-semibold text-green-400">
+                  {formatUsd(data.todayReward ?? data.activePlan.dailyEarning)}
+                </span>{" "}
+                <span className="text-muted">({data.dailyRoiPercent}% of your deposit)</span>
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm">
+              <p className="text-foreground">
+                You don&apos;t have an active investment plan yet.
+              </p>
+              <p className="mt-1 text-muted">
+                Choose a plan to earn {data.dailyRoiPercent}% of your deposit every day you complete this task.
+              </p>
+              <Link href="/investment-plans" className="mt-2 inline-block font-medium text-amber-400 hover:underline">
+                View investment plans →
+              </Link>
+            </div>
+          )}
+
           {!data.completedToday ? (
             <Button onClick={complete} disabled={submitting} className="w-full sm:w-auto">
-              {submitting ? "Processing…" : "Complete today&apos;s task"}
+              {submitting ? "Processing…" : "Complete today's task"}
             </Button>
           ) : null}
         </Card>

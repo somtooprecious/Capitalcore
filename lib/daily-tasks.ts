@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getPlatformConfig, todayKey } from "@/lib/platform-config";
+import { getActivePlan } from "@/lib/investments";
+import { DAILY_ROI_PERCENT, dailyearningFor } from "@/lib/investment-plans";
 
 function toNumber(value: unknown): number {
   if (typeof value === "number") return value;
@@ -51,6 +53,8 @@ export async function getDailyTaskStatus(userId: string) {
   const nextReset = new Date();
   nextReset.setUTCHours(24, 0, 0, 0);
 
+  const activePlan = await getActivePlan(userId);
+
   return {
     task: {
       id: task.id,
@@ -63,6 +67,9 @@ export async function getDailyTaskStatus(userId: string) {
       rewardType: config.dailyTaskRewardType,
       rewardValue: config.dailyTaskRewardValue,
     },
+    activePlan,
+    dailyRoiPercent: DAILY_ROI_PERCENT,
+    todayReward: activePlan ? activePlan.dailyEarning : null,
     completedToday: Boolean(todayCompletion),
     streak,
     nextReset: nextReset.toISOString(),
@@ -101,11 +108,20 @@ export async function completeDailyTask(userId: string) {
     });
   }
 
-  const wallet = await prisma.wallet.findUnique({ where: { userId } });
-  const balance = toNumber(wallet?.balance);
-  let rewardAmount = config.dailyTaskRewardValue;
-  if (config.dailyTaskRewardType === "PERCENT" && balance > 0) {
-    rewardAmount = (balance * config.dailyTaskRewardValue) / 100;
+  // Earnings are driven by the user's active investment plan: every completed
+  // task pays 3.5% of their deposited plan amount. If they have no active plan,
+  // fall back to the admin-configured platform reward.
+  const activePlan = await getActivePlan(userId);
+  let rewardAmount: number;
+  if (activePlan) {
+    rewardAmount = dailyearningFor(activePlan.amount);
+  } else {
+    const wallet = await prisma.wallet.findUnique({ where: { userId } });
+    const balance = toNumber(wallet?.balance);
+    rewardAmount = config.dailyTaskRewardValue;
+    if (config.dailyTaskRewardType === "PERCENT" && balance > 0) {
+      rewardAmount = (balance * config.dailyTaskRewardValue) / 100;
+    }
   }
 
   const yesterday = new Date();
