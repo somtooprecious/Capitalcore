@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/session";
 import { getAdminData } from "@/lib/admin-data";
@@ -6,9 +7,19 @@ import { AdminConsole } from "@/features/admin/admin-console";
 import { AdminLayout } from "@/features/admin/admin-layout";
 
 export default async function AdminPage() {
+  const { userId } = await auth();
+
   let user = await getAuthUser();
 
   if (!user) {
+    // A signed-in session that failed to load usually means a transient
+    // database/network error — show the retry screen instead of bouncing to
+    // sign-in (which would look like a broken login loop).
+    if (userId) {
+      throw new Error(
+        "Your account is signed in but could not be loaded. This is usually a temporary connection issue — please try again."
+      );
+    }
     redirect("/signin");
   }
 
@@ -26,7 +37,13 @@ export default async function AdminPage() {
     redirect("/dashboard");
   }
 
-  const data = await getAdminData();
+  let data;
+  try {
+    data = await getAdminData();
+  } catch (error) {
+    console.error("[admin] Failed to load admin data:", error);
+    throw new Error("Unable to load admin data right now. Please try again in a moment.");
+  }
 
   return (
     <AdminLayout user={{ email: user.email }}>
