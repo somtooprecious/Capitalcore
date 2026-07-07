@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getDailyTaskStatus } from "@/lib/daily-tasks";
 import { ensureWallet } from "@/lib/wallet";
+import { withDbRetry } from "@/lib/db-retry";
 
 function toNumber(value: { toString(): string } | number | null | undefined) {
   if (value == null) return 0;
@@ -32,6 +33,7 @@ export type DashboardData = {
 };
 
 export async function getDashboardData(userId: string): Promise<DashboardData> {
+  return withDbRetry(async () => {
   await ensureWallet(userId);
 
   const [
@@ -130,4 +132,5 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     earningsChart,
     portfolioBreakdown,
   };
+  });
 }

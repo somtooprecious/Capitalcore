@@ -1,6 +1,4 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import { ROLES } from "@/lib/roles";
 
 const isProtectedRoute = createRouteMatcher([
   "/admin(.*)",
@@ -18,22 +16,12 @@ const isProtectedRoute = createRouteMatcher([
   "/support-center(.*)",
 ]);
 
-const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
-
 export default clerkMiddleware(async (auth, req) => {
   if (!isProtectedRoute(req)) return;
 
+  // Require sign-in for protected routes. Role checks (e.g. admin vs user)
+  // are handled in the page/API layer where we can read the database reliably.
   await auth.protect();
-
-  if (isAdminRoute(req)) {
-    const { sessionClaims } = await auth();
-    const metadata = (sessionClaims?.publicMetadata ?? sessionClaims?.metadata ?? {}) as {
-      role?: string;
-    };
-    if (metadata.role !== ROLES.OWNER) {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-  }
 });
 
 export const config = {

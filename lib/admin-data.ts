@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getPlatformConfig } from "@/lib/platform-config";
+import { withDbRetry } from "@/lib/db-retry";
 
 function toNumber(value: unknown): number {
   if (typeof value === "number") return value;
@@ -11,6 +12,7 @@ function toNumber(value: unknown): number {
 }
 
 export async function getAdminData() {
+  return withDbRetry(async () => {
   const [
     totalUsers,
     pendingPayments,
@@ -148,6 +150,7 @@ export async function getAdminData() {
     })),
     platformConfig,
   };
+  });
 }
 
 export type AdminData = Awaited<ReturnType<typeof getAdminData>>;

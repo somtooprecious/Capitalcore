@@ -52,16 +52,18 @@ export function EarningsWorkspace() {
       </div>
 
       {chartData.length > 0 ? (
-        <Card className="h-72 p-4">
+        <Card className="flex h-72 flex-col p-4">
           <p className="mb-2 font-semibold">Earnings by source</p>
-          <ResponsiveContainer width="100%" height="90%">
-            <BarChart data={chartData}>
-              <XAxis dataKey="source" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip formatter={(v) => `$${Number(v).toFixed(2)}`} />
-              <Bar dataKey="amount" fill="#f5b342" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="min-h-0 flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <XAxis dataKey="source" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip formatter={(v) => `$${Number(v).toFixed(2)}`} />
+                <Bar dataKey="amount" fill="#f5b342" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </Card>
       ) : null}
 

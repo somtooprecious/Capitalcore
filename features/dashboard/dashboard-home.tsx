@@ -111,16 +111,18 @@ export function DashboardHome({ user, data }: DashboardHomeProps) {
           </div>
         </Card>
 
-        <Card className="h-[320px] p-4 lg:col-span-2">
+        <Card className="flex h-[320px] flex-col p-4 lg:col-span-2">
           <p className="mb-2 font-semibold">Earnings growth</p>
-          <ResponsiveContainer width="100%" height="90%">
-            <AreaChart data={data.earningsChart.length ? data.earningsChart : [{ month: "—", amount: 0 }]}>
-              <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v) => formatUsd(Number(v))} />
-              <Area type="monotone" dataKey="amount" stroke="#f5b342" fill="#f5b34233" />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div className="min-h-0 flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data.earningsChart.length ? data.earningsChart : [{ month: "—", amount: 0 }]}>
+                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} />
+                <Tooltip formatter={(v) => formatUsd(Number(v))} />
+                <Area type="monotone" dataKey="amount" stroke="#f5b342" fill="#f5b34233" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </Card>
       </div>
 
