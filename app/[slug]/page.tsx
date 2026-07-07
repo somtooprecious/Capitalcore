@@ -1,5 +1,7 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ServiceWorkspaceLayout } from "@/components/service-workspace-layout";
+import { createPageMetadata, PRIVATE_SLUGS } from "@/lib/seo";
 
 const pages: Record<string, { title: string; description: string }> = {
   about: {
@@ -62,6 +64,30 @@ const pages: Record<string, { title: string; description: string }> = {
   "local-transfers": { title: "Local Transfers", description: "Move money locally with instant settlement where supported." },
   "user-to-user-transfers": { title: "User-to-User Transfers", description: "Transfer funds securely between CapitalCore accounts." },
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const page = pages[slug];
+  if (!page) {
+    return createPageMetadata({
+      title: "Page Not Found",
+      description: "The requested CapitalCore AI page could not be found.",
+      path: `/${slug}`,
+      index: false,
+    });
+  }
+
+  return createPageMetadata({
+    title: page.title,
+    description: page.description,
+    path: `/${slug}`,
+    index: !PRIVATE_SLUGS.has(slug),
+  });
+}
 
 export default async function StaticFeaturePage({
   params,

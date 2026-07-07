@@ -2,26 +2,14 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/components/clerk-provider";
+import { createRootMetadata } from "@/lib/seo";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "CapitalCore AI | Modern AI Trading Platform",
-    template: "%s | CapitalCore AI",
-  },
-  description:
-    "Trade crypto, forex, stocks, and commodities on a premium AI trading platform with daily tasks, crypto treasury, referrals, and admin-configured rewards.",
-  openGraph: {
-    title: "CapitalCore AI | Modern AI Trading Platform",
-    description:
-      "Professional trading dashboards, configurable rewards, and secure crypto funding across mobile and desktop.",
-    type: "website",
-  },
-};
+export const metadata: Metadata = createRootMetadata();
 
 export default function RootLayout({
   children,
