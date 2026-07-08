@@ -140,18 +140,7 @@ export async function subscribeToPlan(userId: string, planId: string) {
     );
   }
 
-  const endDate = new Date();
-  endDate.setDate(endDate.getDate() + plan.durationDay);
-
-  const userPlan = await prisma.userPlan.create({
-    data: {
-      userId,
-      planId: plan.id,
-      amount,
-      status: "ACTIVE",
-      endDate,
-    },
-  });
+  const { userPlan, endDate } = await activatePlanById(userId, plan.id);
 
   await prisma.notification.create({
     data: {
@@ -171,4 +160,39 @@ export async function subscribeToPlan(userId: string, planId: string) {
     dailyEarning: dailyearningFor(amount),
     endDate: endDate.toISOString(),
   };
+}
+
+/**
+ * Activates a plan for a user without checking wallet balance.
+ * Useful for trusted flows such as admin-confirmed crypto payments.
+ */
+export async function activatePlanById(userId: string, planId: string) {
+  await ensureInvestmentPlans();
+  const plan = await prisma.investmentPlan.findUnique({ where: { id: planId } });
+  if (!plan || !plan.isActive) {
+    throw new Error("This plan is not available.");
+  }
+
+  const active = await prisma.userPlan.findFirst({
+    where: { userId, status: "ACTIVE", endDate: { gt: new Date() } },
+  });
+  if (active) {
+    throw new Error("User already has an active plan.");
+  }
+
+  const amount = toNumber(plan.minDeposit);
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + plan.durationDay);
+
+  const userPlan = await prisma.userPlan.create({
+    data: {
+      userId,
+      planId: plan.id,
+      amount,
+      status: "ACTIVE",
+      endDate,
+    },
+  });
+
+  return { userPlan, plan, amount, endDate };
 }

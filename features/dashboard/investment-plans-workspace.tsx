@@ -43,6 +43,15 @@ export function InvestmentPlansWorkspace() {
   const [data, setData] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscribingId, setSubscribingId] = useState<string | null>(null);
+  const [payingId, setPayingId] = useState<string | null>(null);
+  const [asset, setAsset] = useState<"BTC" | "USDT" | "ETH">("USDT");
+  const [paymentInfo, setPaymentInfo] = useState<{
+    reference: string;
+    depositAddress: string;
+    asset: string;
+    amount: number;
+    planName?: string;
+  } | null>(null);
 
   const load = async () => {
     const res = await fetch("/api/plans");
@@ -77,6 +86,46 @@ export function InvestmentPlansWorkspace() {
       router.refresh();
     } finally {
       setSubscribingId(null);
+    }
+  };
+
+  const payWithCrypto = async (plan: Plan) => {
+    setPayingId(plan.id);
+    try {
+      const res = await fetch("/api/payments/crypto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId: plan.id, asset }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        reference?: string;
+        depositAddress?: string;
+        asset?: string;
+        amount?: number;
+        planName?: string;
+        message?: string;
+      };
+      if (!res.ok) {
+        toast.error(json.error ?? "Could not create crypto payment.");
+        return;
+      }
+
+      if (json.reference && json.depositAddress && json.asset && json.amount) {
+        setPaymentInfo({
+          reference: json.reference,
+          depositAddress: json.depositAddress,
+          asset: json.asset,
+          amount: json.amount,
+          planName: json.planName,
+        });
+        toast.success(
+          json.message ??
+            "Crypto payment details created. Send funds and wait for admin confirmation to activate your plan.",
+        );
+      }
+    } finally {
+      setPayingId(null);
     }
   };
 
@@ -158,11 +207,52 @@ export function InvestmentPlansWorkspace() {
             Your wallet balance:{" "}
             <span className="font-semibold text-foreground">{formatUsd(data.balance)}</span>
           </p>
-          <Link href="/deposits" className="text-sm font-medium text-primary hover:underline">
-            Need funds? Make a deposit →
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="text-sm text-muted">
+              Pay with:
+              <select
+                value={asset}
+                onChange={(e) => setAsset(e.target.value as "BTC" | "USDT" | "ETH")}
+                className="ml-2 rounded-lg border border-border bg-card px-2 py-1 text-sm text-foreground"
+              >
+                <option value="USDT">USDT</option>
+                <option value="BTC">BTC</option>
+                <option value="ETH">ETH</option>
+              </select>
+            </label>
+            <Link href="/deposits" className="text-sm font-medium text-primary hover:underline">
+              Need wallet funds? Make a deposit →
+            </Link>
+          </div>
         </div>
       )}
+
+      {paymentInfo ? (
+        <Card className="space-y-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 text-sm">
+          <p className="font-semibold text-foreground">
+            Crypto payment pending{paymentInfo.planName ? ` · ${paymentInfo.planName}` : ""}
+          </p>
+          <p>
+            <span className="text-muted">Reference:</span>{" "}
+            <span className="font-mono text-foreground">{paymentInfo.reference}</span>
+          </p>
+          <p>
+            <span className="text-muted">Asset:</span>{" "}
+            <span className="font-semibold text-foreground">{paymentInfo.asset}</span>
+          </p>
+          <p>
+            <span className="text-muted">Amount:</span>{" "}
+            <span className="font-semibold text-foreground">{formatUsd(paymentInfo.amount)} equivalent</span>
+          </p>
+          <p className="text-muted">Send to this address:</p>
+          <p className="break-all rounded-lg border border-border bg-background/70 p-3 font-mono text-xs text-foreground">
+            {paymentInfo.depositAddress}
+          </p>
+          <p className="text-xs text-muted">
+            After sending payment, admin will confirm it and your selected plan will be activated.
+          </p>
+        </Card>
+      ) : null}
 
       {/* Plan cards */}
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
@@ -220,20 +310,40 @@ export function InvestmentPlansWorkspace() {
                     Finish active plan first
                   </Button>
                 ) : plan.affordable ? (
-                  <Button
-                    variant={plan.highlight ? "accent" : "default"}
-                    className="w-full"
-                    disabled={subscribingId === plan.id}
-                    onClick={() => subscribe(plan)}
-                  >
-                    {subscribingId === plan.id ? "Activating…" : "Choose this plan"}
-                  </Button>
-                ) : (
-                  <Link href="/deposits" className="block">
-                    <Button variant="outline" className="w-full">
-                      Deposit to unlock
+                  <div className="space-y-2">
+                    <Button
+                      variant={plan.highlight ? "accent" : "default"}
+                      className="w-full"
+                      disabled={subscribingId === plan.id}
+                      onClick={() => subscribe(plan)}
+                    >
+                      {subscribingId === plan.id ? "Activating…" : "Use wallet balance"}
                     </Button>
-                  </Link>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      disabled={payingId === plan.id}
+                      onClick={() => payWithCrypto(plan)}
+                    >
+                      {payingId === plan.id ? "Preparing payment…" : `Pay with ${asset}`}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      disabled={payingId === plan.id}
+                      onClick={() => payWithCrypto(plan)}
+                    >
+                      {payingId === plan.id ? "Preparing payment…" : `Pay with ${asset}`}
+                    </Button>
+                    <Link href="/deposits" className="block">
+                      <Button variant="outline" className="w-full">
+                        Deposit to unlock wallet
+                      </Button>
+                    </Link>
+                  </div>
                 )}
               </div>
             </Card>
