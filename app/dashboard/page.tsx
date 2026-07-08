@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/session";
 import { getDashboardData } from "@/lib/dashboard-data";
 import { ensureWallet } from "@/lib/wallet";
-import { isOwner, isOwnerEmail } from "@/lib/roles";
 import { DashboardLayout } from "@/features/dashboard/dashboard-layout";
 import { DashboardHome } from "@/features/dashboard/dashboard-home";
 
@@ -18,11 +17,6 @@ export default async function DashboardPage() {
       );
     }
     redirect("/signin");
-  }
-
-  // Owners go straight to the admin panel instead of the user dashboard.
-  if (isOwner(user.role) || isOwnerEmail(user.email)) {
-    redirect("/admin");
   }
 
   await ensureWallet(user.id);
