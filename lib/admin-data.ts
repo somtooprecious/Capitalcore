@@ -91,7 +91,11 @@ export async function getAdminData() {
       paymentVolume,
     },
     recentUsers: recentUsers.map((user) => ({
-      ...user,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      kycStatus: user.kycStatus,
       balance: toNumber(user.wallet?.balance),
       cryptoBtc: toNumber(user.wallet?.cryptoBtc),
       createdAt: user.createdAt.toISOString(),
