@@ -13,8 +13,6 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: "/investment-plans", destination: "/trading", permanent: false },
-      { source: "/my-plans", destination: "/earnings", permanent: false },
       { source: "/my-investments", destination: "/earnings", permanent: false },
     ];
   },
