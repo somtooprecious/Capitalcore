@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 export const DAILY_ROI_PERCENT = 3.5;
 
 /** How long a subscribed plan stays active (in days). */
-export const PLAN_DURATION_DAYS = 30;
+export const PLAN_DURATION_DAYS = 80;
 
 export type PlanDefinition = {
   name: string;

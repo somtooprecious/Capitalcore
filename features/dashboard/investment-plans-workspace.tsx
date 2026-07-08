@@ -122,7 +122,7 @@ export function InvestmentPlansWorkspace() {
             },
             {
               icon: CalendarClock,
-              step: "4. Earn for 30 days",
+              step: `4. Earn for ${durationDays} days`,
               body: `Your plan runs for ${durationDays} days. Keep your streak to maximise earnings.`,
             },
           ].map(({ icon: Icon, step, body }) => (
@@ -196,7 +196,7 @@ export function InvestmentPlansWorkspace() {
                   <span className="font-semibold text-foreground">{dailyRoiPercent}%</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted">30-day potential</span>
+                  <span className="text-muted">{durationDays}-day potential</span>
                   <span className="font-semibold text-amber-400">{formatUsd(plan.projectedTotal)}</span>
                 </div>
               </div>
