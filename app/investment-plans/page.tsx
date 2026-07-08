@@ -1,6 +1,5 @@
-import { requireDashboardSession } from "@/features/dashboard/require-dashboard-session";
-import { InvestmentPlansWorkspace } from "@/features/dashboard/investment-plans-workspace";
+import { redirect } from "next/navigation";
 
 export default async function InvestmentPlansPage() {
-  return requireDashboardSession(<InvestmentPlansWorkspace />);
+  redirect("/plans");
 }

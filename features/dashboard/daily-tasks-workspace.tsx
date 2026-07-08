@@ -136,7 +136,7 @@ export function DailyTasksWorkspace() {
               <p className="mt-1 text-muted">
                 Choose a plan to earn {data.dailyRoiPercent}% of your deposit every day you complete this task.
               </p>
-              <Link href="/investment-plans" className="mt-2 inline-block font-medium text-amber-400 hover:underline">
+              <Link href="/plans" className="mt-2 inline-block font-medium text-amber-400 hover:underline">
                 View investment plans →
               </Link>
             </div>

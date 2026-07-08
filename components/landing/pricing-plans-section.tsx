@@ -118,7 +118,7 @@ export function PricingPlansSection({ hideHeading = false, variant = "landing" }
               </ul>
               <div className="mt-auto flex justify-center">
                 <Link
-                  href={`/investment-plans?plan=${slug}`}
+                  href={`/plans?plan=${slug}`}
                   className={cn(
                     buttonVariants({ variant: "invest" }),
                     "min-w-[160px] text-center font-semibold"
