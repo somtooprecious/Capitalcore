@@ -8,9 +8,10 @@ export function SiteJsonLd() {
     "@type": "Organization",
     name: "CapitalCore AI",
     url: siteUrl,
-    logo: `${siteUrl}/favicon.ico`,
+    logo: `${siteUrl}/images/services/cryptocurrency.svg`,
     description:
-      "Modern AI trading platform for crypto, forex, stocks, and commodities with professional dashboards and secure treasury tools.",
+      "Modern AI trading platform for crypto, forex, stocks, and commodities with investment plans, daily tasks, and secure crypto deposits.",
+    sameAs: [],
   };
 
   const website = {
@@ -25,6 +26,22 @@ export function SiteJsonLd() {
     },
   };
 
+  const software = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "CapitalCore AI",
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Web",
+    url: siteUrl,
+    description:
+      "AI trading platform with crypto deposits, investment plans, live charts, and daily task rewards.",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  };
+
   return (
     <>
       <script
@@ -34,6 +51,10 @@ export function SiteJsonLd() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(website) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(software) }}
       />
     </>
   );

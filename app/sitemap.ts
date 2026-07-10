@@ -1,7 +1,11 @@
 import type { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/site-url";
 
-const PUBLIC_PATHS: { path: string; priority: number; changeFrequency: "daily" | "weekly" | "monthly" }[] = [
+const PUBLIC_PATHS: {
+  path: string;
+  priority: number;
+  changeFrequency: "daily" | "weekly" | "monthly";
+}[] = [
   { path: "/", priority: 1, changeFrequency: "daily" },
   { path: "/about", priority: 0.8, changeFrequency: "monthly" },
   { path: "/how-it-works", priority: 0.8, changeFrequency: "monthly" },
@@ -9,7 +13,7 @@ const PUBLIC_PATHS: { path: string; priority: number; changeFrequency: "daily" |
   { path: "/markets", priority: 0.8, changeFrequency: "daily" },
   { path: "/services", priority: 0.7, changeFrequency: "monthly" },
   { path: "/features", priority: 0.7, changeFrequency: "monthly" },
-  { path: "/investment-plans", priority: 0.7, changeFrequency: "weekly" },
+  { path: "/investment-plans", priority: 0.9, changeFrequency: "weekly" },
   { path: "/blog", priority: 0.7, changeFrequency: "weekly" },
   { path: "/faq", priority: 0.6, changeFrequency: "monthly" },
   { path: "/contact", priority: 0.6, changeFrequency: "monthly" },

@@ -17,6 +17,7 @@ export default function robots(): MetadataRoute.Robots {
           "/transfers",
           "/trading",
           "/my-plans",
+          "/plans",
           "/settings",
           "/daily-tasks",
           "/earnings",

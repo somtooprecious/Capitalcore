@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  title: "CapitalCore AI | Modern AI Trading Platform",
+  description:
+    "Trade crypto, forex, stocks, and commodities on CapitalCore AI with investment plans, daily tasks, crypto deposits, and secure account management.",
 };
 
 export default function Home() {

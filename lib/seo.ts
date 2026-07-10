@@ -46,17 +46,31 @@ export function isPublicPage(slug: string): boolean {
   return PUBLIC_PAGE_SLUGS.has(slug);
 }
 
+function defaultOgImage(siteUrl: string) {
+  return [
+    {
+      url: `${siteUrl}/images/services/cryptocurrency.svg`,
+      width: 1200,
+      height: 630,
+      alt: "CapitalCore AI trading platform",
+    },
+  ];
+}
+
 export function createRootMetadata(): Metadata {
   const siteUrl = getSiteUrl();
+  const title = "CapitalCore AI | Modern AI Trading Platform";
+  const description =
+    "Trade crypto, forex, stocks, and commodities on CapitalCore AI — a professional trading platform with live charts, investment plans, daily tasks, crypto deposits, referrals, and secure account management.";
 
   return {
     metadataBase: new URL(siteUrl),
     title: {
-      default: "CapitalCore AI | Modern AI Trading Platform",
+      default: title,
       template: "%s | CapitalCore AI",
     },
-    description:
-      "Trade crypto, forex, stocks, and commodities on CapitalCore AI — a professional trading platform with live charts, daily tasks, crypto treasury, referrals, and secure account management.",
+    description,
+    applicationName: "CapitalCore AI",
     keywords: [
       "CapitalCore AI",
       "AI trading platform",
@@ -64,14 +78,20 @@ export function createRootMetadata(): Metadata {
       "forex trading",
       "stock trading",
       "bitcoin trading",
-      "investment platform",
-      "trading dashboard",
-      "crypto wallet",
+      "investment plans",
+      "crypto deposit",
+      "USDT payment",
       "daily trading tasks",
+      "referral earnings",
     ],
-    authors: [{ name: "CapitalCore AI" }],
+    authors: [{ name: "CapitalCore AI", url: siteUrl }],
     creator: "CapitalCore AI",
     publisher: "CapitalCore AI",
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
     robots: {
       index: true,
       follow: true,
@@ -91,17 +111,21 @@ export function createRootMetadata(): Metadata {
       locale: "en_US",
       url: siteUrl,
       siteName: "CapitalCore AI",
-      title: "CapitalCore AI | Modern AI Trading Platform",
-      description:
-        "Professional trading dashboards, live market charts, crypto treasury, and configurable rewards across mobile and desktop.",
+      title,
+      description,
+      images: defaultOgImage(siteUrl),
     },
     twitter: {
       card: "summary_large_image",
-      title: "CapitalCore AI | Modern AI Trading Platform",
-      description:
-        "Professional trading dashboards, live market charts, crypto treasury, and configurable rewards.",
+      title,
+      description,
+      images: [`${siteUrl}/images/services/cryptocurrency.svg`],
     },
     category: "finance",
+    verification: {
+      // Add your Google Search Console verification token in Vercel as GOOGLE_SITE_VERIFICATION
+      google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    },
   };
 }
 
@@ -118,6 +142,8 @@ export function createPageMetadata({
   path,
   index = true,
 }: PageMetadataInput): Metadata {
+  const siteUrl = getSiteUrl();
+
   return {
     title,
     description,
@@ -130,8 +156,16 @@ export function createPageMetadata({
     openGraph: {
       title,
       description,
-      url: path,
+      url: `${siteUrl}${path}`,
       type: "website",
+      siteName: "CapitalCore AI",
+      images: defaultOgImage(siteUrl),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [`${siteUrl}/images/services/cryptocurrency.svg`],
     },
   };
 }
