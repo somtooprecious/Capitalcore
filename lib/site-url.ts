@@ -1,4 +1,4 @@
-const FALLBACK_URL = "https://capitalcore-sand.vercel.app";
+const FALLBACK_URL = "https://www.capitalcore.capital";
 
 function normalize(url: string): string {
   const trimmed = url.trim().replace(/\/+$/, "");
