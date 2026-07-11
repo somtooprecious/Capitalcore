@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import { Toaster } from "sonner";
 import { LiveChatWidget } from "@/components/live-chat-widget";
+import { SitePreloader } from "@/components/site-preloader";
 import type { Currency, Locale } from "@/lib/i18n";
 
 type Theme = "dark" | "light";
@@ -119,6 +120,7 @@ function AppProviders({ children }: { children: React.ReactNode }) {
       <ThemeContext.Provider value={themeValue}>
         <LocaleContext.Provider value={localeValue}>
           <LocalePreferencesSync setLocaleState={setLocaleState} setCurrencyState={setCurrencyState} />
+          <SitePreloader />
           {children}
           <LiveChatWidget />
           <Toaster richColors position="top-right" theme={theme} />

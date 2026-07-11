@@ -35,6 +35,10 @@ body {
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }
 
+html.site-preloading {
+  overflow: hidden;
+}
+
 .glass {
   backdrop-filter: blur(12px);
   background: color-mix(in oklab, var(--card) 84%, transparent);
