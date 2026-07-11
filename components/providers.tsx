@@ -42,7 +42,7 @@ function LocalePreferencesSync({
         if (p?.preferredLanguage && ["en", "es", "fr", "de"].includes(p.preferredLanguage)) {
           setLocaleState(p.preferredLanguage as Locale);
         }
-        if (p?.preferredCurrency && ["USD", "EUR", "GBP", "NGN"].includes(p.preferredCurrency)) {
+        if (p?.preferredCurrency && ["USD", "EUR", "GBP"].includes(p.preferredCurrency)) {
           setCurrencyState(p.preferredCurrency as Currency);
         }
       });
@@ -67,7 +67,9 @@ function AppProviders({ children }: { children: React.ReactNode }) {
   });
   const [currency, setCurrencyState] = useState<Currency>(() => {
     if (typeof window === "undefined") return "USD";
-    return (window.localStorage.getItem("capitalcore-currency") as Currency | null) ?? "USD";
+    const stored = window.localStorage.getItem("capitalcore-currency");
+    if (stored === "USD" || stored === "EUR" || stored === "GBP") return stored;
+    return "USD";
   });
 
   useEffect(() => {

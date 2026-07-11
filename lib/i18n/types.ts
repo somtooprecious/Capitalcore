@@ -1,6 +1,6 @@
 export type Locale = "en" | "es" | "fr" | "de";
 
-export type Currency = "USD" | "EUR" | "GBP" | "NGN";
+export type Currency = "USD" | "EUR" | "GBP";
 
 export const LOCALES: { code: Locale; label: string }[] = [
   { code: "en", label: "English" },
@@ -13,5 +13,4 @@ export const CURRENCIES: { code: Currency; label: string; rate: number }[] = [
   { code: "USD", label: "US Dollar", rate: 1 },
   { code: "EUR", label: "Euro", rate: 0.92 },
   { code: "GBP", label: "British Pound", rate: 0.79 },
-  { code: "NGN", label: "Nigerian Naira", rate: 1550 },
 ];
