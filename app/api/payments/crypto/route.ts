@@ -49,6 +49,8 @@ export async function POST(req: Request) {
 
   const reference = `CRYPTO-${randomBytes(6).toString("hex").toUpperCase()}`;
   const depositAddress = CRYPTO_ADDRESSES[asset];
+  const network = asset === "USDT" ? "BEP20" : null;
+  const assetLabel = asset === "USDT" ? "USDT (BEP20)" : asset;
 
   await prisma.$transaction([
     prisma.payment.create({
@@ -61,6 +63,7 @@ export async function POST(req: Request) {
         status: "PENDING",
         metadata: {
           asset,
+          network,
           depositAddress,
           purpose: plan ? "PLAN_SUBSCRIPTION" : "WALLET_DEPOSIT",
           planId: plan?.id,
@@ -75,7 +78,9 @@ export async function POST(req: Request) {
         amount,
         status: "PENDING",
         reference,
-        description: `Crypto deposit (${asset})`,
+        description: network
+          ? `Crypto deposit (${assetLabel})`
+          : `Crypto deposit (${asset})`,
       },
     }),
   ]);
@@ -84,10 +89,11 @@ export async function POST(req: Request) {
     reference,
     depositAddress,
     asset,
+    network,
     amount,
     planName: plan?.name,
     message: plan
-      ? `Send exactly ${amount} USD equivalent in ${asset} to activate ${plan.name}. Include your reference in memo if supported.`
-      : "Send the equivalent USD amount in crypto and include your reference in the memo if supported.",
+      ? `Send exactly ${amount} USD equivalent in ${assetLabel} to activate ${plan.name}. Include your reference in memo if supported.`
+      : `Send the equivalent USD amount in ${assetLabel} and include your reference in the memo if supported.`,
   });
 }

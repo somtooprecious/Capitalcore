@@ -4,6 +4,19 @@ import { getPlatformConfig } from "@/lib/platform-config";
 import { logAudit } from "@/lib/audit";
 import { sendWithdrawalEmail } from "@/lib/email";
 
+/** Percent fee applied to every withdrawal (of requested amount). */
+export const WITHDRAWAL_PERCENT_FEE = 0.1;
+/** Flat fee charged on every withdrawal (USD). */
+export const WITHDRAWAL_FLAT_FEE_USD = 5;
+
+export const WITHDRAWAL_ASSETS = [
+  { code: "BTC", label: "Bitcoin (BTC)", network: null },
+  { code: "ETH", label: "Ethereum (ETH)", network: null },
+  { code: "USDT", label: "USDT (BEP20)", network: "BEP20" },
+] as const;
+
+export type WithdrawalAssetCode = (typeof WITHDRAWAL_ASSETS)[number]["code"];
+
 function toNumber(value: unknown): number {
   if (typeof value === "number") return value;
   if (typeof value === "string") return Number(value);
@@ -13,10 +26,31 @@ function toNumber(value: unknown): number {
   return 0;
 }
 
+export function calculateWithdrawalFees(amount: number) {
+  const percentFee = Math.round(amount * WITHDRAWAL_PERCENT_FEE * 100) / 100;
+  const flatFee = WITHDRAWAL_FLAT_FEE_USD;
+  const totalFee = Math.round((percentFee + flatFee) * 100) / 100;
+  const netPayout = Math.round((amount - totalFee) * 100) / 100;
+  return { percentFee, flatFee, totalFee, netPayout };
+}
+
+export function formatWithdrawalDestination(asset: WithdrawalAssetCode, address: string) {
+  const meta = WITHDRAWAL_ASSETS.find((row) => row.code === asset);
+  const label = meta?.label ?? asset;
+  return `${label} · ${address.trim()}`;
+}
+
 export async function createWithdrawalRequest(userId: string, amount: number, destination: string) {
   const config = await getPlatformConfig();
   if (amount < config.withdrawalMin || amount > config.withdrawalMax) {
     throw new Error(`Withdrawal must be between $${config.withdrawalMin} and $${config.withdrawalMax}.`);
+  }
+
+  const fees = calculateWithdrawalFees(amount);
+  if (fees.netPayout <= 0) {
+    throw new Error(
+      `Amount is too low after fees (10% + $${WITHDRAWAL_FLAT_FEE_USD}). Increase the withdrawal amount.`,
+    );
   }
 
   const wallet = await prisma.wallet.findUnique({ where: { userId } });
@@ -49,21 +83,21 @@ export async function createWithdrawalRequest(userId: string, amount: number, de
         amount,
         status: "PENDING",
         reference,
-        description: `Withdrawal request to ${destination.slice(0, 24)}…`,
+        description: `Withdrawal request (−10% −$${WITHDRAWAL_FLAT_FEE_USD} fee) to ${destination.slice(0, 32)}`,
       },
     });
     await tx.notification.create({
       data: {
         userId,
         title: "Withdrawal submitted",
-        body: `Your withdrawal of $${amount.toFixed(2)} is pending admin review.`,
+        body: `Withdrawal of $${amount.toFixed(2)} submitted. Fees: $${fees.totalFee.toFixed(2)}. Net payout: $${fees.netPayout.toFixed(2)}. Pending admin review.`,
         type: "WITHDRAWAL",
       },
     });
     return created;
   });
 
-  return withdrawal;
+  return { withdrawal, fees };
 }
 
 export async function processWithdrawal(

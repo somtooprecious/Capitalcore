@@ -46,10 +46,10 @@ function QuoteCard({ quote }: { quote: SymbolQuote }) {
       <div className="flex items-center gap-2.5 border-b border-border/50 px-4 py-3.5">
         <Image
           src={cryptoIconUrl(quote.iconSlug)}
-          alt=""
+          alt={`${quote.name} icon`}
           width={28}
           height={28}
-          className="rounded-full"
+          className="h-7 w-7 shrink-0 rounded-full"
           unoptimized
         />
         <span className="text-sm font-semibold tracking-wide text-foreground">

@@ -135,5 +135,5 @@ export function formatQuotePrice(price: number | null): string {
 }
 
 export function cryptoIconUrl(iconSlug: string) {
-  return `https://assets.coincap.io/assets/icons/${iconSlug}@2x.png`;
+  return `/images/crypto/${iconSlug}.svg`;
 }

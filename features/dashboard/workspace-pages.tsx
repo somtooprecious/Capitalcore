@@ -7,6 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { TradingViewWidget } from "@/components/trading-view-widget";
 import { ClerkSecurityPanel } from "@/components/auth/clerk-security-panel";
+import {
+  WITHDRAWAL_ASSETS,
+  WITHDRAWAL_FLAT_FEE_USD,
+  calculateWithdrawalFees,
+  type WithdrawalAssetCode,
+} from "@/lib/withdrawals";
 import { cn } from "@/lib/utils";
 
 function WorkspaceHeader({ title, description }: { title: string; description: string }) {
@@ -84,6 +90,9 @@ export function DepositsWorkspace() {
     }
   };
 
+  const assetLabel =
+    depositInfo?.asset === "USDT" ? "USDT (BEP20)" : depositInfo?.asset ?? "";
+
   return (
     <>
       <WorkspaceHeader
@@ -111,9 +120,15 @@ export function DepositsWorkspace() {
               onChange={(e) => setAsset(e.target.value)}
             >
               <option value="BTC">Bitcoin (BTC)</option>
-              <option value="USDT">Tether (USDT)</option>
+              <option value="USDT">Tether USDT (BEP20)</option>
               <option value="ETH">Ethereum (ETH)</option>
             </select>
+            {asset === "USDT" ? (
+              <p className="mt-2 text-xs text-amber-400/90">
+                Important: send USDT on the <span className="font-semibold">BEP20</span> network only
+                (BNB Smart Chain). Other networks may result in lost funds.
+              </p>
+            ) : null}
           </div>
           {status ? <StatusMessage message={status.text} type={status.type} /> : null}
           {depositInfo ? (
@@ -123,8 +138,13 @@ export function DepositsWorkspace() {
                 <span className="font-mono font-medium text-foreground">{depositInfo.reference}</span>
               </p>
               <p>
-                <span className="text-muted">Send {depositInfo.asset} to:</span>
+                <span className="text-muted">Send {assetLabel} to:</span>
               </p>
+              {depositInfo.asset === "USDT" ? (
+                <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                  Network required: <span className="font-semibold">BEP20 (BNB Smart Chain)</span>
+                </p>
+              ) : null}
               <p className="break-all font-mono text-xs text-foreground">{depositInfo.depositAddress}</p>
               <p className="text-xs text-muted">
                 Amount: ${depositInfo.amount.toFixed(2)} USD equivalent. Include your reference in the memo if the
@@ -143,12 +163,19 @@ export function DepositsWorkspace() {
 
 export function WithdrawalsWorkspace() {
   const [amount, setAmount] = useState("");
-  const [destination, setDestination] = useState("");
+  const [asset, setAsset] = useState<WithdrawalAssetCode>("USDT");
+  const [address, setAddress] = useState("");
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<
     { id: string; amount: number; destination: string; status: string; reference: string; createdAt: string }[]
   >([]);
+
+  const amountValue = Number(amount);
+  const feePreview =
+    amountValue > 0
+      ? calculateWithdrawalFees(amountValue)
+      : { percentFee: 0, flatFee: WITHDRAWAL_FLAT_FEE_USD, totalFee: 0, netPayout: 0 };
 
   const loadHistory = async () => {
     const res = await fetch("/api/withdrawals");
@@ -165,11 +192,11 @@ export function WithdrawalsWorkspace() {
     setStatus(null);
     const value = Number(amount);
     if (!value || value < 20) {
-      setStatus({ type: "error", text: "Enter a valid withdrawal amount." });
+      setStatus({ type: "error", text: "Enter a valid withdrawal amount (minimum $20)." });
       return;
     }
-    if (!destination.trim()) {
-      setStatus({ type: "error", text: "Enter a bank account or wallet destination." });
+    if (!address.trim() || address.trim().length < 8) {
+      setStatus({ type: "error", text: "Enter a valid wallet address for the selected asset." });
       return;
     }
     setLoading(true);
@@ -177,19 +204,27 @@ export function WithdrawalsWorkspace() {
       const res = await fetch("/api/withdrawals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: value, destination: destination.trim() }),
+        body: JSON.stringify({ amount: value, asset, address: address.trim() }),
       });
-      const data = (await res.json()) as { error?: string; reference?: string };
+      const data = (await res.json()) as {
+        error?: string;
+        reference?: string;
+        fees?: { totalFee: number; netPayout: number };
+      };
       if (!res.ok) {
         setStatus({ type: "error", text: data.error ?? "Could not submit withdrawal." });
         return;
       }
+      const feeNote =
+        data.fees
+          ? ` Fees $${data.fees.totalFee.toFixed(2)}. Net payout $${data.fees.netPayout.toFixed(2)}.`
+          : "";
       setStatus({
         type: "success",
-        text: `Withdrawal queued (ref ${data.reference}). Pending admin approval.`,
+        text: `Withdrawal queued (ref ${data.reference}).${feeNote} Pending admin approval.`,
       });
       setAmount("");
-      setDestination("");
+      setAddress("");
       await loadHistory();
     } finally {
       setLoading(false);
@@ -200,7 +235,7 @@ export function WithdrawalsWorkspace() {
     <>
       <WorkspaceHeader
         title="Withdrawals"
-        description="Request a payout to your linked bank account or external wallet. Most requests are reviewed within 24 hours."
+        description="Request a payout to your crypto wallet. A 10% fee plus a $5 processing fee applies to every withdrawal. Most requests are reviewed within 24 hours."
       />
       <Card className="max-w-xl space-y-4 p-6">
         <form onSubmit={onSubmit} className="space-y-4">
@@ -216,13 +251,56 @@ export function WithdrawalsWorkspace() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Destination</label>
+            <label className="mb-1.5 block text-sm font-medium">Destination asset</label>
+            <select
+              className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm"
+              value={asset}
+              onChange={(e) => setAsset(e.target.value as WithdrawalAssetCode)}
+            >
+              {WITHDRAWAL_ASSETS.map((option) => (
+                <option key={option.code} value={option.code}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {asset === "USDT" ? (
+              <p className="mt-2 text-xs text-amber-400/90">
+                USDT withdrawals are paid on the <span className="font-semibold">BEP20</span> network.
+              </p>
+            ) : null}
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium">Wallet address</label>
             <Input
-              placeholder="Bank account · IBAN · or crypto address"
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
+              placeholder={
+                asset === "BTC"
+                  ? "Your Bitcoin address"
+                  : asset === "ETH"
+                    ? "Your Ethereum address (0x…)"
+                    : "Your USDT BEP20 address (0x…)"
+              }
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
             />
           </div>
+          {amountValue > 0 ? (
+            <div className="space-y-1.5 rounded-xl border border-border bg-background/60 px-4 py-3 text-sm">
+              <div className="flex justify-between gap-3 text-muted">
+                <span>10% fee</span>
+                <span className="tabular-nums">−${feePreview.percentFee.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between gap-3 text-muted">
+                <span>Withdrawal fee</span>
+                <span className="tabular-nums">−${feePreview.flatFee.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between gap-3 border-t border-border pt-2 font-medium text-foreground">
+                <span>You receive</span>
+                <span className="tabular-nums text-emerald-400">
+                  ${Math.max(0, feePreview.netPayout).toFixed(2)}
+                </span>
+              </div>
+            </div>
+          ) : null}
           {status ? <StatusMessage message={status.text} type={status.type} /> : null}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Submitting…" : "Submit withdrawal"}

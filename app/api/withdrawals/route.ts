@@ -1,27 +1,50 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/api-auth";
-import { createWithdrawalRequest } from "@/lib/withdrawals";
+import {
+  WITHDRAWAL_ASSETS,
+  createWithdrawalRequest,
+  formatWithdrawalDestination,
+  type WithdrawalAssetCode,
+} from "@/lib/withdrawals";
+
+const ALLOWED_ASSETS = new Set(WITHDRAWAL_ASSETS.map((a) => a.code));
 
 export async function POST(req: Request) {
   const auth = await requireApiUser();
   if ("error" in auth) return auth.error;
   const { user } = auth;
 
-  const body = (await req.json()) as { amount?: number; destination?: string };
+  const body = (await req.json()) as {
+    amount?: number;
+    destination?: string;
+    asset?: string;
+    address?: string;
+  };
   const amount = Number(body.amount);
-  const destination = body.destination?.trim();
+  const asset = (body.asset ?? "").toUpperCase() as WithdrawalAssetCode;
+  const address = (body.address ?? body.destination ?? "").trim();
 
-  if (!amount || !destination) {
-    return NextResponse.json({ error: "Amount and destination are required." }, { status: 400 });
+  if (!amount) {
+    return NextResponse.json({ error: "Amount is required." }, { status: 400 });
+  }
+  if (!ALLOWED_ASSETS.has(asset)) {
+    return NextResponse.json({ error: "Select BTC, Ethereum, or USDT (BEP20)." }, { status: 400 });
+  }
+  if (!address || address.length < 8) {
+    return NextResponse.json({ error: "Enter a valid wallet address." }, { status: 400 });
   }
 
+  const destination = formatWithdrawalDestination(asset, address);
+
   try {
-    const withdrawal = await createWithdrawalRequest(user.id, amount, destination);
+    const { withdrawal, fees } = await createWithdrawalRequest(user.id, amount, destination);
     return NextResponse.json({
       id: withdrawal.id,
       reference: withdrawal.reference,
       status: withdrawal.status,
       amount: Number(withdrawal.amount),
+      destination,
+      fees,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Could not create withdrawal.";
