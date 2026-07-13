@@ -12,7 +12,7 @@ export const WITHDRAWAL_FLAT_FEE_USD = 5;
 export const WITHDRAWAL_ASSETS = [
   { code: "BTC", label: "Bitcoin (BTC)", network: null },
   { code: "ETH", label: "Ethereum (ETH)", network: null },
-  { code: "USDT", label: "USDT (BEP20)", network: "BEP20" },
+  { code: "USDT", label: "USDT BEP 20", network: "BEP20" },
 ] as const;
 
 export type WithdrawalAssetCode = (typeof WITHDRAWAL_ASSETS)[number]["code"];

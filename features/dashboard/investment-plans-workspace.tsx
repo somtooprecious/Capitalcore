@@ -215,7 +215,7 @@ export function InvestmentPlansWorkspace() {
                 onChange={(e) => setAsset(e.target.value as "BTC" | "USDT" | "ETH")}
                 className="ml-2 rounded-lg border border-border bg-card px-2 py-1 text-sm text-foreground"
               >
-                <option value="USDT">USDT (BEP20)</option>
+                <option value="USDT">USDT BEP 20</option>
                 <option value="BTC">BTC</option>
                 <option value="ETH">ETH</option>
               </select>
@@ -239,14 +239,9 @@ export function InvestmentPlansWorkspace() {
           <p>
             <span className="text-muted">Asset:</span>{" "}
             <span className="font-semibold text-foreground">
-              {paymentInfo.asset === "USDT" ? "USDT (BEP20)" : paymentInfo.asset}
+              {paymentInfo.asset === "USDT" ? "USDT BEP 20" : paymentInfo.asset}
             </span>
           </p>
-          {paymentInfo.asset === "USDT" ? (
-            <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-              Network required: <span className="font-semibold">BEP20 (BNB Smart Chain)</span>
-            </p>
-          ) : null}
           <p>
             <span className="text-muted">Amount:</span>{" "}
             <span className="font-semibold text-foreground">{formatUsd(paymentInfo.amount)} equivalent</span>

@@ -91,7 +91,7 @@ export function DepositsWorkspace() {
   };
 
   const assetLabel =
-    depositInfo?.asset === "USDT" ? "USDT (BEP20)" : depositInfo?.asset ?? "";
+    depositInfo?.asset === "USDT" ? "USDT BEP 20" : depositInfo?.asset ?? "";
 
   return (
     <>
@@ -120,15 +120,9 @@ export function DepositsWorkspace() {
               onChange={(e) => setAsset(e.target.value)}
             >
               <option value="BTC">Bitcoin (BTC)</option>
-              <option value="USDT">Tether USDT (BEP20)</option>
+              <option value="USDT">USDT BEP 20</option>
               <option value="ETH">Ethereum (ETH)</option>
             </select>
-            {asset === "USDT" ? (
-              <p className="mt-2 text-xs text-amber-400/90">
-                Important: send USDT on the <span className="font-semibold">BEP20</span> network only
-                (BNB Smart Chain). Other networks may result in lost funds.
-              </p>
-            ) : null}
           </div>
           {status ? <StatusMessage message={status.text} type={status.type} /> : null}
           {depositInfo ? (
@@ -140,11 +134,6 @@ export function DepositsWorkspace() {
               <p>
                 <span className="text-muted">Send {assetLabel} to:</span>
               </p>
-              {depositInfo.asset === "USDT" ? (
-                <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-                  Network required: <span className="font-semibold">BEP20 (BNB Smart Chain)</span>
-                </p>
-              ) : null}
               <p className="break-all font-mono text-xs text-foreground">{depositInfo.depositAddress}</p>
               <p className="text-xs text-muted">
                 Amount: ${depositInfo.amount.toFixed(2)} USD equivalent. Include your reference in the memo if the
@@ -263,11 +252,6 @@ export function WithdrawalsWorkspace() {
                 </option>
               ))}
             </select>
-            {asset === "USDT" ? (
-              <p className="mt-2 text-xs text-amber-400/90">
-                USDT withdrawals are paid on the <span className="font-semibold">BEP20</span> network.
-              </p>
-            ) : null}
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium">Wallet address</label>
@@ -277,7 +261,7 @@ export function WithdrawalsWorkspace() {
                   ? "Your Bitcoin address"
                   : asset === "ETH"
                     ? "Your Ethereum address (0x…)"
-                    : "Your USDT BEP20 address (0x…)"
+                    : "Your USDT BEP 20 address (0x…)"
               }
               value={address}
               onChange={(e) => setAddress(e.target.value)}

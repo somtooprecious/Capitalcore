@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Amount is required." }, { status: 400 });
   }
   if (!ALLOWED_ASSETS.has(asset)) {
-    return NextResponse.json({ error: "Select BTC, Ethereum, or USDT (BEP20)." }, { status: 400 });
+    return NextResponse.json({ error: "Select BTC, Ethereum, or USDT BEP 20." }, { status: 400 });
   }
   if (!address || address.length < 8) {
     return NextResponse.json({ error: "Enter a valid wallet address." }, { status: 400 });

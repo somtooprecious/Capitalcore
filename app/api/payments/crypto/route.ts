@@ -50,7 +50,7 @@ export async function POST(req: Request) {
   const reference = `CRYPTO-${randomBytes(6).toString("hex").toUpperCase()}`;
   const depositAddress = CRYPTO_ADDRESSES[asset];
   const network = asset === "USDT" ? "BEP20" : null;
-  const assetLabel = asset === "USDT" ? "USDT (BEP20)" : asset;
+  const assetLabel = asset === "USDT" ? "USDT BEP 20" : asset;
 
   await prisma.$transaction([
     prisma.payment.create({
