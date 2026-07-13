@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { generateReferralCode } from "@/lib/platform-config";
-import { REFERRAL_BONUS_USD } from "@/lib/referrals";
+import { REFERRAL_BONUS_PERCENT } from "@/lib/referrals";
 import { getSiteUrl } from "@/lib/site-url";
 
 export async function GET() {
@@ -42,7 +42,8 @@ export async function GET() {
   return NextResponse.json({
     code: dbUser.referralCode,
     link: `${baseUrl}/signup?ref=${dbUser.referralCode}`,
-    bonusPerReferral: REFERRAL_BONUS_USD,
+    bonusPerReferralPercent: REFERRAL_BONUS_PERCENT,
+    bonusPerReferral: REFERRAL_BONUS_PERCENT,
     totalReferrals: referrals.length,
     totalEarnings: earnings.reduce((s, e) => s + Number(e.amount), 0),
     referrals: referrals.map((r) => ({

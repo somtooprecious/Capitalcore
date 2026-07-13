@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Check, Sparkles, TrendingUp, CalendarClock, Wallet } from "lucide-react";
+import { Check, Sparkles, TrendingUp, CalendarClock, Wallet, ArrowUpRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatUsd, formatDate } from "@/lib/format";
@@ -20,6 +20,11 @@ type Plan = {
   dailyEarning: number;
   projectedTotal: number;
   affordable: boolean;
+  canUpgrade: boolean;
+  upgradeCost: number;
+  upgradeAffordable: boolean;
+  isCurrent: boolean;
+  isLower: boolean;
 };
 
 type ActivePlan = {
@@ -51,6 +56,7 @@ export function InvestmentPlansWorkspace() {
     asset: string;
     amount: number;
     planName?: string;
+    isUpgrade?: boolean;
   } | null>(null);
 
   const load = async () => {
@@ -72,16 +78,29 @@ export function InvestmentPlansWorkspace() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ planId: plan.id }),
       });
-      const json = (await res.json()) as { error?: string; dailyEarning?: number };
+      const json = (await res.json()) as {
+        error?: string;
+        dailyEarning?: number;
+        upgraded?: boolean;
+        upgradeCost?: number;
+      };
       if (!res.ok) {
         toast.error(json.error ?? "Could not activate plan.");
         return;
       }
-      toast.success(
-        `${plan.name} plan activated! Complete your daily task to earn ${formatUsd(
-          json.dailyEarning ?? plan.dailyEarning,
-        )} every day.`,
-      );
+      if (json.upgraded) {
+        toast.success(
+          `Upgraded to ${plan.name}! Top-up ${formatUsd(json.upgradeCost ?? plan.upgradeCost)}. Daily earning is now ${formatUsd(
+            json.dailyEarning ?? plan.dailyEarning,
+          )}.`,
+        );
+      } else {
+        toast.success(
+          `${plan.name} plan activated! Complete your daily task to earn ${formatUsd(
+            json.dailyEarning ?? plan.dailyEarning,
+          )} every day.`,
+        );
+      }
       await load();
       router.refresh();
     } finally {
@@ -104,6 +123,7 @@ export function InvestmentPlansWorkspace() {
         asset?: string;
         amount?: number;
         planName?: string;
+        isUpgrade?: boolean;
         message?: string;
       };
       if (!res.ok) {
@@ -118,10 +138,11 @@ export function InvestmentPlansWorkspace() {
           asset: json.asset,
           amount: json.amount,
           planName: json.planName,
+          isUpgrade: json.isUpgrade,
         });
         toast.success(
           json.message ??
-            "Crypto payment details created. Send funds and wait for admin confirmation to activate your plan.",
+            "Crypto payment details created. Send funds and wait for admin confirmation.",
         );
       }
     } finally {
@@ -142,11 +163,11 @@ export function InvestmentPlansWorkspace() {
         <p className="mt-1 max-w-2xl text-muted">
           Choose the plan that fits your budget. Every plan pays{" "}
           <span className="font-semibold text-amber-400">{dailyRoiPercent}% of your deposit daily</span>{" "}
-          — you earn it each day you complete your daily task on the platform.
+          — you earn it each day you complete your daily task. You can upgrade anytime with wallet funds or an
+          extra deposit.
         </p>
       </div>
 
-      {/* How it works */}
       <Card className="p-6">
         <h2 className="flex items-center gap-2 text-lg font-semibold">
           <Sparkles className="h-5 w-5 text-amber-400" />
@@ -165,14 +186,14 @@ export function InvestmentPlansWorkspace() {
               body: "Pick $50, $100, $200, or $500. Bigger deposits earn more each day.",
             },
             {
-              icon: Check,
-              step: "3. Do your daily task",
-              body: `Each day you complete the task, ${dailyRoiPercent}% of your deposit is added to your balance.`,
+              icon: ArrowUpRight,
+              step: "3. Upgrade anytime",
+              body: "Move up to a higher plan using available balance or by depositing only the difference.",
             },
             {
               icon: CalendarClock,
               step: `4. Earn for ${durationDays} days`,
-              body: `Your plan runs for ${durationDays} days. Keep your streak to maximise earnings.`,
+              body: `Each completed daily task pays ${dailyRoiPercent}% of your current plan amount.`,
             },
           ].map(({ icon: Icon, step, body }) => (
             <div key={step} className="rounded-xl border border-border bg-background/50 p-4">
@@ -184,21 +205,40 @@ export function InvestmentPlansWorkspace() {
         </div>
       </Card>
 
-      {/* Active plan banner */}
       {activePlan ? (
         <Card className="border-green-500/30 bg-green-500/5 p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-wide text-green-400">Active plan</p>
-              <h3 className="mt-1 text-xl font-bold">{activePlan.name} — {formatUsd(activePlan.amount)}</h3>
+              <h3 className="mt-1 text-xl font-bold">
+                {activePlan.name} — {formatUsd(activePlan.amount)}
+              </h3>
               <p className="mt-1 text-sm text-muted">
                 Earning <span className="font-semibold text-green-400">{formatUsd(activePlan.dailyEarning)}</span>{" "}
                 per completed daily task · runs until {formatDate(activePlan.endDate)}
               </p>
+              <p className="mt-2 text-sm text-muted">
+                Wallet balance: <span className="font-semibold text-foreground">{formatUsd(data.balance)}</span>
+                . Upgrade by paying only the difference to a higher plan.
+              </p>
             </div>
-            <Link href="/daily-tasks">
-              <Button variant="accent">Complete today&apos;s task</Button>
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="text-sm text-muted">
+                Pay upgrade with:
+                <select
+                  value={asset}
+                  onChange={(e) => setAsset(e.target.value as "BTC" | "USDT" | "ETH")}
+                  className="ml-2 rounded-lg border border-border bg-card px-2 py-1 text-sm text-foreground"
+                >
+                  <option value="USDT">USDT BEP 20</option>
+                  <option value="BTC">BTC</option>
+                  <option value="ETH">ETH</option>
+                </select>
+              </label>
+              <Link href="/daily-tasks">
+                <Button variant="accent">Complete today&apos;s task</Button>
+              </Link>
+            </div>
           </div>
         </Card>
       ) : (
@@ -230,7 +270,10 @@ export function InvestmentPlansWorkspace() {
       {paymentInfo ? (
         <Card className="space-y-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 text-sm">
           <p className="font-semibold text-foreground">
-            Crypto payment pending{paymentInfo.planName ? ` · ${paymentInfo.planName}` : ""}
+            Crypto payment pending
+            {paymentInfo.planName
+              ? ` · ${paymentInfo.isUpgrade ? "Upgrade to" : ""} ${paymentInfo.planName}`
+              : ""}
           </p>
           <p>
             <span className="text-muted">Reference:</span>{" "}
@@ -243,29 +286,31 @@ export function InvestmentPlansWorkspace() {
             </span>
           </p>
           <p>
-            <span className="text-muted">Amount:</span>{" "}
+            <span className="text-muted">Amount to send:</span>{" "}
             <span className="font-semibold text-foreground">{formatUsd(paymentInfo.amount)} equivalent</span>
+            {paymentInfo.isUpgrade ? (
+              <span className="text-muted"> (upgrade top-up only)</span>
+            ) : null}
           </p>
           <p className="text-muted">Send to this address:</p>
           <p className="break-all rounded-lg border border-border bg-background/70 p-3 font-mono text-xs text-foreground">
             {paymentInfo.depositAddress}
           </p>
           <p className="text-xs text-muted">
-            After sending payment, admin will confirm it and your selected plan will be activated.
+            After admin confirms payment, your plan will be {paymentInfo.isUpgrade ? "upgraded" : "activated"}.
           </p>
         </Card>
       ) : null}
 
-      {/* Plan cards */}
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {data.plans.map((plan) => {
-          const isActive = activePlan?.name === plan.name;
           return (
             <Card
               key={plan.id}
               className={cn(
                 "relative flex flex-col p-6",
                 plan.highlight && "border-amber-500/40 ring-1 ring-amber-500/30",
+                plan.isCurrent && "border-green-500/40",
               )}
             >
               {plan.highlight ? (
@@ -291,6 +336,12 @@ export function InvestmentPlansWorkspace() {
                   <span className="text-muted">{durationDays}-day potential</span>
                   <span className="font-semibold text-amber-400">{formatUsd(plan.projectedTotal)}</span>
                 </div>
+                {plan.canUpgrade ? (
+                  <div className="flex items-center justify-between border-t border-border pt-2 text-sm">
+                    <span className="text-muted">Upgrade top-up</span>
+                    <span className="font-bold text-amber-400">{formatUsd(plan.upgradeCost)}</span>
+                  </div>
+                ) : null}
               </div>
 
               <ul className="mb-6 space-y-2">
@@ -303,14 +354,48 @@ export function InvestmentPlansWorkspace() {
               </ul>
 
               <div className="mt-auto">
-                {isActive ? (
+                {plan.isCurrent ? (
                   <Button variant="outline" className="w-full" disabled>
                     Currently active
                   </Button>
-                ) : activePlan ? (
+                ) : plan.isLower ? (
                   <Button variant="outline" className="w-full" disabled>
-                    Finish active plan first
+                    Below your current plan
                   </Button>
+                ) : plan.canUpgrade ? (
+                  <div className="space-y-2">
+                    {plan.upgradeAffordable ? (
+                      <Button
+                        variant={plan.highlight ? "accent" : "default"}
+                        className="w-full"
+                        disabled={subscribingId === plan.id}
+                        onClick={() => subscribe(plan)}
+                      >
+                        {subscribingId === plan.id
+                          ? "Upgrading…"
+                          : `Upgrade with wallet · ${formatUsd(plan.upgradeCost)}`}
+                      </Button>
+                    ) : null}
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      disabled={payingId === plan.id}
+                      onClick={() => payWithCrypto(plan)}
+                    >
+                      {payingId === plan.id
+                        ? "Preparing payment…"
+                        : `Deposit ${formatUsd(plan.upgradeCost)} with ${asset}`}
+                    </Button>
+                    {!plan.upgradeAffordable ? (
+                      <p className="text-center text-xs text-muted">
+                        Need {formatUsd(plan.upgradeCost)} more — use crypto top-up or{" "}
+                        <Link href="/deposits" className="text-primary hover:underline">
+                          deposit to wallet
+                        </Link>
+                        .
+                      </p>
+                    ) : null}
+                  </div>
                 ) : plan.affordable ? (
                   <div className="space-y-2">
                     <Button

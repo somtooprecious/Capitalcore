@@ -67,6 +67,11 @@ export type PlansOverview = {
     dailyEarning: number;
     projectedTotal: number;
     affordable: boolean;
+    canUpgrade: boolean;
+    upgradeCost: number;
+    upgradeAffordable: boolean;
+    isCurrent: boolean;
+    isLower: boolean;
   }[];
 };
 
@@ -84,12 +89,17 @@ export async function getPlansOverview(userId: string): Promise<PlansOverview> {
   ]);
 
   const balance = toNumber(wallet?.balance);
-
+  const activeAmount = activePlan?.amount ?? 0;
   const defByName = new Map(PLAN_DEFINITIONS.map((p) => [p.name, p]));
 
   const plans = dbPlans.map((plan) => {
     const amount = toNumber(plan.minDeposit);
     const def = defByName.get(plan.name);
+    const canUpgrade = Boolean(activePlan) && amount > activeAmount;
+    const upgradeCost = canUpgrade ? Math.round((amount - activeAmount) * 100) / 100 : 0;
+    const isCurrent = Boolean(activePlan) && amount === activeAmount;
+    const isLower = Boolean(activePlan) && amount < activeAmount;
+
     return {
       id: plan.id,
       name: plan.name,
@@ -99,7 +109,12 @@ export async function getPlansOverview(userId: string): Promise<PlansOverview> {
       highlight: def?.highlight ?? false,
       dailyEarning: dailyearningFor(amount),
       projectedTotal: projectedTotalFor(amount),
-      affordable: balance >= amount,
+      affordable: !activePlan && balance >= amount,
+      canUpgrade,
+      upgradeCost,
+      upgradeAffordable: canUpgrade && balance >= upgradeCost,
+      isCurrent,
+      isLower,
     };
   });
 
@@ -112,6 +127,10 @@ export async function getPlansOverview(userId: string): Promise<PlansOverview> {
   };
 }
 
+/**
+ * Activates a plan from wallet (new subscription) or upgrades an existing lower plan,
+ * paying only the difference from available balance.
+ */
 export async function subscribeToPlan(userId: string, planId: string) {
   await ensureInvestmentPlans();
   await ensureWallet(userId);
@@ -121,24 +140,58 @@ export async function subscribeToPlan(userId: string, planId: string) {
     throw new Error("This plan is not available.");
   }
 
-  const amount = toNumber(plan.minDeposit);
-
+  const targetAmount = toNumber(plan.minDeposit);
   const wallet = await prisma.wallet.findUnique({ where: { userId } });
   const balance = toNumber(wallet?.balance);
-  if (balance < amount) {
+
+  const active = await prisma.userPlan.findFirst({
+    where: { userId, status: "ACTIVE", endDate: { gt: new Date() } },
+    orderBy: { amount: "desc" },
+  });
+
+  if (active) {
+    const currentAmount = toNumber(active.amount);
+    if (targetAmount <= currentAmount) {
+      throw new Error("Choose a higher plan to upgrade.");
+    }
+    const upgradeCost = Math.round((targetAmount - currentAmount) * 100) / 100;
+    if (balance < upgradeCost) {
+      throw new Error(
+        `You need $${upgradeCost.toFixed(2)} more in your wallet to upgrade. Deposit the difference or use crypto to top up.`,
+      );
+    }
+
+    const result = await upgradePlanById(userId, planId, { debitWallet: true, debitAmount: upgradeCost });
+    await prisma.notification.create({
+      data: {
+        userId,
+        title: "Plan upgraded",
+        body: `Upgraded to ${plan.name}. Daily task reward is now $${dailyearningFor(targetAmount).toFixed(2)}.`,
+        type: "PLAN",
+      },
+    });
+
+    return {
+      id: result.userPlan.id,
+      name: plan.name,
+      amount: targetAmount,
+      dailyEarning: dailyearningFor(targetAmount),
+      endDate: result.endDate.toISOString(),
+      upgraded: true,
+      upgradeCost,
+    };
+  }
+
+  if (balance < targetAmount) {
     throw new Error(
-      `You need at least $${amount.toFixed(2)} in your wallet to activate this plan. Please make a deposit first.`,
+      `You need at least $${targetAmount.toFixed(2)} in your wallet to activate this plan. Please make a deposit first.`,
     );
   }
 
-  const existing = await prisma.userPlan.findFirst({
-    where: { userId, status: "ACTIVE", endDate: { gt: new Date() } },
+  await prisma.wallet.update({
+    where: { userId },
+    data: { balance: { decrement: targetAmount } },
   });
-  if (existing) {
-    throw new Error(
-      "You already have an active plan. Wait for it to complete before choosing a new one.",
-    );
-  }
 
   const { userPlan, endDate } = await activatePlanById(userId, plan.id);
 
@@ -147,7 +200,7 @@ export async function subscribeToPlan(userId: string, planId: string) {
       userId,
       title: "Plan activated",
       body: `Your ${plan.name} plan is active. Complete your daily task to earn $${dailyearningFor(
-        amount,
+        targetAmount,
       ).toFixed(2)} each day.`,
       type: "PLAN",
     },
@@ -156,9 +209,10 @@ export async function subscribeToPlan(userId: string, planId: string) {
   return {
     id: userPlan.id,
     name: plan.name,
-    amount,
-    dailyEarning: dailyearningFor(amount),
+    amount: targetAmount,
+    dailyEarning: dailyearningFor(targetAmount),
     endDate: endDate.toISOString(),
+    upgraded: false,
   };
 }
 
@@ -195,4 +249,111 @@ export async function activatePlanById(userId: string, planId: string) {
   });
 
   return { userPlan, plan, amount, endDate };
+}
+
+/**
+ * Upgrades an active lower plan to a higher one. Optionally debits the wallet
+ * for the top-up amount (used for wallet upgrades and crypto top-ups after credit).
+ */
+export async function upgradePlanById(
+  userId: string,
+  planId: string,
+  options?: { debitWallet?: boolean; debitAmount?: number },
+) {
+  await ensureInvestmentPlans();
+  const plan = await prisma.investmentPlan.findUnique({ where: { id: planId } });
+  if (!plan || !plan.isActive) {
+    throw new Error("This plan is not available.");
+  }
+
+  const targetAmount = toNumber(plan.minDeposit);
+  const active = await prisma.userPlan.findFirst({
+    where: { userId, status: "ACTIVE", endDate: { gt: new Date() } },
+    orderBy: { amount: "desc" },
+  });
+  if (!active) {
+    throw new Error("No active plan to upgrade.");
+  }
+
+  const currentAmount = toNumber(active.amount);
+  if (targetAmount <= currentAmount) {
+    throw new Error("Choose a higher plan to upgrade.");
+  }
+
+  const upgradeCost = Math.round((targetAmount - currentAmount) * 100) / 100;
+  const debitAmount = options?.debitAmount ?? upgradeCost;
+
+  if (options?.debitWallet) {
+    const wallet = await prisma.wallet.findUnique({ where: { userId } });
+    if (toNumber(wallet?.balance) < debitAmount) {
+      throw new Error(`Insufficient balance to upgrade. Need $${debitAmount.toFixed(2)}.`);
+    }
+  }
+
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + plan.durationDay);
+
+  const userPlan = await prisma.$transaction(async (tx) => {
+    if (options?.debitWallet) {
+      await tx.wallet.update({
+        where: { userId },
+        data: { balance: { decrement: debitAmount } },
+      });
+    }
+
+    await tx.userPlan.update({
+      where: { id: active.id },
+      data: { status: "UPGRADED" },
+    });
+
+    return tx.userPlan.create({
+      data: {
+        userId,
+        planId: plan.id,
+        amount: targetAmount,
+        status: "ACTIVE",
+        endDate,
+      },
+    });
+  });
+
+  return { userPlan, plan, amount: targetAmount, endDate, upgradeCost };
+}
+
+/** How much a user must pay (crypto or wallet) to reach a given plan. */
+export async function getPlanPaymentAmount(userId: string, planId: string) {
+  await ensureInvestmentPlans();
+  const plan = await prisma.investmentPlan.findUnique({
+    where: { id: planId },
+    select: { id: true, name: true, minDeposit: true, isActive: true },
+  });
+  if (!plan || !plan.isActive) {
+    throw new Error("Selected plan is not available.");
+  }
+
+  const targetAmount = toNumber(plan.minDeposit);
+  const active = await getActivePlan(userId);
+
+  if (!active) {
+    return {
+      plan,
+      amount: targetAmount,
+      purpose: "PLAN_SUBSCRIPTION" as const,
+      upgradeCost: 0,
+      isUpgrade: false,
+    };
+  }
+
+  if (targetAmount <= active.amount) {
+    throw new Error("Choose a higher plan than your current active plan.");
+  }
+
+  const upgradeCost = Math.round((targetAmount - active.amount) * 100) / 100;
+  return {
+    plan,
+    amount: upgradeCost,
+    purpose: "PLAN_UPGRADE" as const,
+    upgradeCost,
+    isUpgrade: true,
+  };
 }

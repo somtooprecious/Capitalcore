@@ -2,16 +2,23 @@ import { randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { ensureWallet } from "@/lib/wallet";
 
-/** Flat bonus credited to the referrer when a referred user deposits for a plan. */
-export const REFERRAL_BONUS_USD = 5;
+/** Percent of a referred user's plan deposit credited to the referrer. */
+export const REFERRAL_BONUS_PERCENT = 5;
 
 const REWARD_TYPE = "PLAN_DEPOSIT_BONUS";
 
+export function referralBonusForDeposit(depositAmount: number) {
+  return Math.round(((Math.max(0, depositAmount) * REFERRAL_BONUS_PERCENT) / 100) * 100) / 100;
+}
+
 /**
- * Credits the referrer $5 once when a referred user completes a plan deposit.
+ * Credits the referrer once with 5% of the referred user's plan deposit.
  * Safe to call multiple times — skips if this referral was already rewarded.
  */
-export async function grantReferralPlanDepositBonus(referredUserId: string) {
+export async function grantReferralPlanDepositBonus(referredUserId: string, depositAmount: number) {
+  const bonus = referralBonusForDeposit(depositAmount);
+  if (bonus <= 0) return { credited: false as const, reason: "zero_bonus" as const };
+
   const referral = await prisma.referral.findUnique({
     where: { referredId: referredUserId },
     select: { id: true, referrerId: true, code: true },
@@ -34,13 +41,13 @@ export async function grantReferralPlanDepositBonus(referredUserId: string) {
   await prisma.$transaction(async (tx) => {
     await tx.wallet.update({
       where: { userId: referral.referrerId },
-      data: { balance: { increment: REFERRAL_BONUS_USD } },
+      data: { balance: { increment: bonus } },
     });
 
     await tx.earning.create({
       data: {
         userId: referral.referrerId,
-        amount: REFERRAL_BONUS_USD,
+        amount: bonus,
         source: "REFERRAL",
         reference,
       },
@@ -49,7 +56,7 @@ export async function grantReferralPlanDepositBonus(referredUserId: string) {
     await tx.referralEarning.create({
       data: {
         referralId: referral.id,
-        amount: REFERRAL_BONUS_USD,
+        amount: bonus,
         type: REWARD_TYPE,
       },
     });
@@ -58,10 +65,10 @@ export async function grantReferralPlanDepositBonus(referredUserId: string) {
       data: {
         userId: referral.referrerId,
         type: "REFERRAL",
-        amount: REFERRAL_BONUS_USD,
+        amount: bonus,
         status: "COMPLETED",
         reference,
-        description: `Referral bonus — invited user deposited for a plan (${referral.code})`,
+        description: `Referral bonus (${REFERRAL_BONUS_PERCENT}% of $${depositAmount.toFixed(2)} plan deposit · ${referral.code})`,
       },
     });
 
@@ -69,11 +76,11 @@ export async function grantReferralPlanDepositBonus(referredUserId: string) {
       data: {
         userId: referral.referrerId,
         title: "Referral bonus credited",
-        body: `You earned $${REFERRAL_BONUS_USD.toFixed(2)} because someone you referred deposited for an investment plan.`,
+        body: `You earned $${bonus.toFixed(2)} (${REFERRAL_BONUS_PERCENT}% of a $${depositAmount.toFixed(2)} plan deposit) from your referral.`,
         type: "REFERRAL",
       },
     });
   });
 
-  return { credited: true as const, amount: REFERRAL_BONUS_USD };
+  return { credited: true as const, amount: bonus };
 }

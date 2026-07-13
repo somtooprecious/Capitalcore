@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { activatePlanById } from "@/lib/investments";
+import { activatePlanById, upgradePlanById } from "@/lib/investments";
 import { dailyearningFor } from "@/lib/investment-plans";
 import { grantReferralPlanDepositBonus } from "@/lib/referrals";
 
@@ -17,8 +17,11 @@ export async function approvePayment(paymentId: string) {
           purpose?: string;
           planId?: string;
           planName?: string;
+          isUpgrade?: boolean;
         })
       : {};
+
+  const paymentAmount = Number(payment.amount);
 
   await prisma.$transaction(async (tx) => {
     await tx.payment.update({
@@ -36,10 +39,14 @@ export async function approvePayment(paymentId: string) {
     });
   });
 
-  // If this payment was created specifically for a plan, try to auto-activate it.
   if (metadata.purpose === "PLAN_SUBSCRIPTION" && metadata.planId) {
     try {
       const { plan, amount } = await activatePlanById(payment.userId, metadata.planId);
+      // Apply the deposit toward the plan by debiting the credited amount.
+      await prisma.wallet.update({
+        where: { userId: payment.userId },
+        data: { balance: { decrement: payment.amount } },
+      });
       await prisma.notification.create({
         data: {
           userId: payment.userId,
@@ -51,13 +58,33 @@ export async function approvePayment(paymentId: string) {
         },
       });
     } catch {
-      // Ignore auto-activation failures (e.g., already active plan); payment credit still succeeds.
+      // Ignore auto-activation failures; payment credit still succeeds.
     }
 
-    // Credit referrer once the referred user deposits for any investment plan.
-    await grantReferralPlanDepositBonus(payment.userId).catch((error) => {
+    await grantReferralPlanDepositBonus(payment.userId, paymentAmount).catch((error) => {
       console.error("[approvePayment] Referral bonus failed:", error);
     });
+  }
+
+  if (metadata.purpose === "PLAN_UPGRADE" && metadata.planId) {
+    try {
+      const { plan, amount, upgradeCost } = await upgradePlanById(payment.userId, metadata.planId, {
+        debitWallet: true,
+        debitAmount: paymentAmount,
+      });
+      await prisma.notification.create({
+        data: {
+          userId: payment.userId,
+          title: "Plan upgraded",
+          body: `Upgraded to ${plan.name} (top-up $${upgradeCost.toFixed(2)}). Daily task reward is now $${dailyearningFor(
+            amount,
+          ).toFixed(2)}.`,
+          type: "PLAN",
+        },
+      });
+    } catch (error) {
+      console.error("[approvePayment] Plan upgrade failed:", error);
+    }
   }
 }
 

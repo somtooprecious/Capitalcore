@@ -9,7 +9,7 @@ import { toast } from "sonner";
 type ReferralData = {
   code: string;
   link: string;
-  bonusPerReferral: number;
+  bonusPerReferralPercent: number;
   totalReferrals: number;
   totalEarnings: number;
   referrals: { id: string; name: string; email: string; joinedAt: string }[];
@@ -33,24 +33,25 @@ export function ReferralsWorkspace() {
 
   if (!data) return <Card className="animate-pulse p-8 text-muted">Loading referrals…</Card>;
 
-  const bonus = data.bonusPerReferral ?? 5;
+  const percent = data.bonusPerReferralPercent ?? 5;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Referrals</h1>
         <p className="mt-1 text-muted">
-          Invite friends with your link. Earn <span className="font-semibold text-amber-400">${bonus.toFixed(2)}</span>{" "}
-          when a new user signs up with your referral link and deposits for any investment plan.
+          Invite friends with your link. Earn{" "}
+          <span className="font-semibold text-amber-400">{percent}%</span> of their investment plan deposit
+          when they sign up with your referral link and deposit for a plan.
         </p>
       </div>
 
       <Card className="space-y-3 border-amber-500/30 bg-amber-500/5 p-6">
         <p className="text-xs uppercase tracking-wide text-amber-400">Offer</p>
-        <p className="text-2xl font-bold tabular-nums text-foreground">${bonus.toFixed(2)} per referral</p>
+        <p className="text-2xl font-bold tabular-nums text-foreground">{percent}% of plan deposit</p>
         <p className="text-sm text-muted">
-          Your ${bonus.toFixed(2)} bonus is credited after the invited user deposits for an investment plan
-          (once per referred user).
+          Example: if they deposit $100 for a plan, you receive ${(100 * (percent / 100)).toFixed(2)}. Credited once
+          when their plan deposit is approved.
         </p>
       </Card>
 

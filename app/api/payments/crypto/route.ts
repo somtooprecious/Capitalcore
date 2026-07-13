@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
+import { getPlanPaymentAmount } from "@/lib/investments";
 
 const CRYPTO_ADDRESSES: Record<string, string> = {
   BTC: process.env.CRYPTO_BTC_ADDRESS ?? "bc1qcapitalcore-demo-deposit",
@@ -30,17 +31,24 @@ export async function POST(req: Request) {
         minDeposit: number;
       }
     | null = null;
+  let purpose: "PLAN_SUBSCRIPTION" | "PLAN_UPGRADE" | "WALLET_DEPOSIT" = "WALLET_DEPOSIT";
+  let isUpgrade = false;
 
   if (planId) {
-    const dbPlan = await prisma.investmentPlan.findUnique({
-      where: { id: planId },
-      select: { id: true, name: true, minDeposit: true, isActive: true },
-    });
-    if (!dbPlan || !dbPlan.isActive) {
-      return NextResponse.json({ error: "Selected plan is not available." }, { status: 400 });
+    try {
+      const payment = await getPlanPaymentAmount(user.id, planId);
+      amount = payment.amount;
+      purpose = payment.purpose;
+      isUpgrade = payment.isUpgrade;
+      plan = {
+        id: payment.plan.id,
+        name: payment.plan.name,
+        minDeposit: Number(payment.plan.minDeposit),
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Selected plan is not available.";
+      return NextResponse.json({ error: message }, { status: 400 });
     }
-    amount = Number(dbPlan.minDeposit);
-    plan = { id: dbPlan.id, name: dbPlan.name, minDeposit: amount };
   }
 
   if (!amount || amount < 10) {
@@ -65,9 +73,11 @@ export async function POST(req: Request) {
           asset,
           network,
           depositAddress,
-          purpose: plan ? "PLAN_SUBSCRIPTION" : "WALLET_DEPOSIT",
+          purpose,
           planId: plan?.id,
           planName: plan?.name,
+          isUpgrade,
+          targetPlanAmount: plan?.minDeposit,
         },
       },
     }),
@@ -78,9 +88,13 @@ export async function POST(req: Request) {
         amount,
         status: "PENDING",
         reference,
-        description: network
-          ? `Crypto deposit (${assetLabel})`
-          : `Crypto deposit (${asset})`,
+        description: plan
+          ? isUpgrade
+            ? `Plan upgrade top-up (${assetLabel}) · ${plan.name}`
+            : `Crypto deposit (${assetLabel}) · ${plan.name}`
+          : network
+            ? `Crypto deposit (${assetLabel})`
+            : `Crypto deposit (${asset})`,
       },
     }),
   ]);
@@ -92,8 +106,11 @@ export async function POST(req: Request) {
     network,
     amount,
     planName: plan?.name,
+    isUpgrade,
     message: plan
-      ? `Send exactly ${amount} USD equivalent in ${assetLabel} to activate ${plan.name}. Include your reference in memo if supported.`
+      ? isUpgrade
+        ? `Send exactly ${amount} USD equivalent in ${assetLabel} to upgrade to ${plan.name}. Include your reference in memo if supported.`
+        : `Send exactly ${amount} USD equivalent in ${assetLabel} to activate ${plan.name}. Include your reference in memo if supported.`
       : `Send the equivalent USD amount in ${assetLabel} and include your reference in the memo if supported.`,
   });
 }
