@@ -1,5 +1,5 @@
 /** Percent fee applied to every withdrawal (of requested amount). */
-export const WITHDRAWAL_PERCENT_FEE = 0.05;
+export const WITHDRAWAL_PERCENT_FEE = 0.1;
 /** Flat fee charged on every withdrawal (USD). Kept at 0 — percent fee only. */
 export const WITHDRAWAL_FLAT_FEE_USD = 0;
 

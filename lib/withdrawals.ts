@@ -39,7 +39,7 @@ export async function createWithdrawalRequest(userId: string, amount: number, de
   const fees = calculateWithdrawalFees(amount);
   if (fees.netPayout <= 0) {
     throw new Error(
-      `Amount is too low after the 5% withdrawal fee. Increase the withdrawal amount.`,
+      `Amount is too low after the 10% withdrawal fee. Increase the withdrawal amount.`,
     );
   }
 
@@ -73,7 +73,7 @@ export async function createWithdrawalRequest(userId: string, amount: number, de
         amount,
         status: "PENDING",
         reference,
-        description: `Withdrawal request (−5% fee) to ${destination.slice(0, 32)}`,
+        description: `Withdrawal request (−10% fee) to ${destination.slice(0, 32)}`,
       },
     });
     await tx.notification.create({

@@ -223,7 +223,7 @@ export function WithdrawalsWorkspace() {
     <>
       <WorkspaceHeader
         title="Withdrawals"
-        description="Request a payout to your crypto wallet. A 5% withdrawal fee applies to every request. Most requests are reviewed within 24 hours."
+        description="Request a payout to your crypto wallet. A 10% withdrawal fee applies to every request. Most requests are reviewed within 24 hours."
       />
       <Card className="max-w-xl space-y-4 p-6">
         <form onSubmit={onSubmit} className="space-y-4">
@@ -269,7 +269,7 @@ export function WithdrawalsWorkspace() {
           {amountValue > 0 ? (
             <div className="space-y-1.5 rounded-xl border border-border bg-background/60 px-4 py-3 text-sm">
               <div className="flex justify-between gap-3 text-muted">
-                <span>5% withdrawal fee</span>
+                <span>10% withdrawal fee</span>
                 <span className="tabular-nums">−${feePreview.percentFee.toFixed(2)}</span>
               </div>
               <div className="flex justify-between gap-3 border-t border-border pt-2 font-medium text-foreground">
