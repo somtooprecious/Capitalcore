@@ -41,7 +41,7 @@ export function ReferralsWorkspace() {
         <h1 className="text-3xl font-bold">Referrals</h1>
         <p className="mt-1 text-muted">
           Invite friends with your link. Earn <span className="font-semibold text-amber-400">${bonus.toFixed(2)}</span>{" "}
-          when a new user signs up with your referral and deposits for any investment plan.
+          when a new user signs up with your referral link and deposits for any investment plan.
         </p>
       </div>
 
