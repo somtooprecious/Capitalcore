@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 export const dashboardMenu = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Investment plans", href: "/plans" },
-  { label: "Trading", href: "/trading" },
   { label: "Daily task", href: "/daily-tasks" },
   { label: "Earnings", href: "/earnings" },
   { label: "Deposits", href: "/deposits" },

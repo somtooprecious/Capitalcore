@@ -19,7 +19,17 @@ export async function syncClerkUserToDatabase(clerkUser: ClerkUserPayload) {
     throw new Error("Clerk user is missing an email address.");
   }
 
-  const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ").trim() || null;
+  const nameFromClerk = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ").trim();
+  const metaFirst =
+    typeof clerkUser.unsafeMetadata?.firstName === "string"
+      ? clerkUser.unsafeMetadata.firstName.trim()
+      : "";
+  const metaLast =
+    typeof clerkUser.unsafeMetadata?.lastName === "string"
+      ? clerkUser.unsafeMetadata.lastName.trim()
+      : "";
+  const nameFromMeta = [metaFirst, metaLast].filter(Boolean).join(" ").trim();
+  const name = nameFromClerk || nameFromMeta || null;
   const emailIsOwner = isOwnerEmail(email);
   const defaultRole = emailIsOwner ? ROLES.OWNER : ROLES.USER;
 
