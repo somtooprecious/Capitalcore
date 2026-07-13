@@ -12,7 +12,7 @@ import {
   WITHDRAWAL_FLAT_FEE_USD,
   calculateWithdrawalFees,
   type WithdrawalAssetCode,
-} from "@/lib/withdrawals";
+} from "@/lib/withdrawal-fees";
 import { cn } from "@/lib/utils";
 
 function WorkspaceHeader({ title, description }: { title: string; description: string }) {

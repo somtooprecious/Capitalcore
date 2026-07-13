@@ -3,19 +3,23 @@ import { prisma } from "@/lib/prisma";
 import { getPlatformConfig } from "@/lib/platform-config";
 import { logAudit } from "@/lib/audit";
 import { sendWithdrawalEmail } from "@/lib/email";
+import {
+  WITHDRAWAL_ASSETS,
+  WITHDRAWAL_FLAT_FEE_USD,
+  WITHDRAWAL_PERCENT_FEE,
+  calculateWithdrawalFees,
+  formatWithdrawalDestination,
+  type WithdrawalAssetCode,
+} from "@/lib/withdrawal-fees";
 
-/** Percent fee applied to every withdrawal (of requested amount). */
-export const WITHDRAWAL_PERCENT_FEE = 0.1;
-/** Flat fee charged on every withdrawal (USD). */
-export const WITHDRAWAL_FLAT_FEE_USD = 5;
-
-export const WITHDRAWAL_ASSETS = [
-  { code: "BTC", label: "Bitcoin (BTC)", network: null },
-  { code: "ETH", label: "Ethereum (ETH)", network: null },
-  { code: "USDT", label: "USDT BEP 20", network: "BEP20" },
-] as const;
-
-export type WithdrawalAssetCode = (typeof WITHDRAWAL_ASSETS)[number]["code"];
+export {
+  WITHDRAWAL_ASSETS,
+  WITHDRAWAL_FLAT_FEE_USD,
+  WITHDRAWAL_PERCENT_FEE,
+  calculateWithdrawalFees,
+  formatWithdrawalDestination,
+};
+export type { WithdrawalAssetCode };
 
 function toNumber(value: unknown): number {
   if (typeof value === "number") return value;
@@ -24,20 +28,6 @@ function toNumber(value: unknown): number {
     return (value as { toNumber: () => number }).toNumber();
   }
   return 0;
-}
-
-export function calculateWithdrawalFees(amount: number) {
-  const percentFee = Math.round(amount * WITHDRAWAL_PERCENT_FEE * 100) / 100;
-  const flatFee = WITHDRAWAL_FLAT_FEE_USD;
-  const totalFee = Math.round((percentFee + flatFee) * 100) / 100;
-  const netPayout = Math.round((amount - totalFee) * 100) / 100;
-  return { percentFee, flatFee, totalFee, netPayout };
-}
-
-export function formatWithdrawalDestination(asset: WithdrawalAssetCode, address: string) {
-  const meta = WITHDRAWAL_ASSETS.find((row) => row.code === asset);
-  const label = meta?.label ?? asset;
-  return `${label} · ${address.trim()}`;
 }
 
 export async function createWithdrawalRequest(userId: string, amount: number, destination: string) {
