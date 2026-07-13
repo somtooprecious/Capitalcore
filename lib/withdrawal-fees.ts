@@ -1,7 +1,7 @@
 /** Percent fee applied to every withdrawal (of requested amount). */
-export const WITHDRAWAL_PERCENT_FEE = 0.1;
-/** Flat fee charged on every withdrawal (USD). */
-export const WITHDRAWAL_FLAT_FEE_USD = 5;
+export const WITHDRAWAL_PERCENT_FEE = 0.05;
+/** Flat fee charged on every withdrawal (USD). Kept at 0 — percent fee only. */
+export const WITHDRAWAL_FLAT_FEE_USD = 0;
 
 export const WITHDRAWAL_ASSETS = [
   { code: "BTC", label: "Bitcoin (BTC)", network: null },

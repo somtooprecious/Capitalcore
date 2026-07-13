@@ -9,7 +9,6 @@ import { TradingViewWidget } from "@/components/trading-view-widget";
 import { ClerkSecurityPanel } from "@/components/auth/clerk-security-panel";
 import {
   WITHDRAWAL_ASSETS,
-  WITHDRAWAL_FLAT_FEE_USD,
   calculateWithdrawalFees,
   type WithdrawalAssetCode,
 } from "@/lib/withdrawal-fees";
@@ -164,7 +163,7 @@ export function WithdrawalsWorkspace() {
   const feePreview =
     amountValue > 0
       ? calculateWithdrawalFees(amountValue)
-      : { percentFee: 0, flatFee: WITHDRAWAL_FLAT_FEE_USD, totalFee: 0, netPayout: 0 };
+      : { percentFee: 0, flatFee: 0, totalFee: 0, netPayout: 0 };
 
   const loadHistory = async () => {
     const res = await fetch("/api/withdrawals");
@@ -224,7 +223,7 @@ export function WithdrawalsWorkspace() {
     <>
       <WorkspaceHeader
         title="Withdrawals"
-        description="Request a payout to your crypto wallet. A 10% fee plus a $5 processing fee applies to every withdrawal. Most requests are reviewed within 24 hours."
+        description="Request a payout to your crypto wallet. A 5% withdrawal fee applies to every request. Most requests are reviewed within 24 hours."
       />
       <Card className="max-w-xl space-y-4 p-6">
         <form onSubmit={onSubmit} className="space-y-4">
@@ -270,12 +269,8 @@ export function WithdrawalsWorkspace() {
           {amountValue > 0 ? (
             <div className="space-y-1.5 rounded-xl border border-border bg-background/60 px-4 py-3 text-sm">
               <div className="flex justify-between gap-3 text-muted">
-                <span>10% fee</span>
+                <span>5% withdrawal fee</span>
                 <span className="tabular-nums">−${feePreview.percentFee.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between gap-3 text-muted">
-                <span>Withdrawal fee</span>
-                <span className="tabular-nums">−${feePreview.flatFee.toFixed(2)}</span>
               </div>
               <div className="flex justify-between gap-3 border-t border-border pt-2 font-medium text-foreground">
                 <span>You receive</span>
