@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { generateReferralCode } from "@/lib/platform-config";
+import { REFERRAL_BONUS_USD } from "@/lib/referrals";
+import { getSiteUrl } from "@/lib/site-url";
 
 export async function GET() {
   const auth = await requireApiUser();
@@ -35,11 +37,12 @@ export async function GET() {
     }),
   ]);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const baseUrl = getSiteUrl();
 
   return NextResponse.json({
     code: dbUser.referralCode,
     link: `${baseUrl}/signup?ref=${dbUser.referralCode}`,
+    bonusPerReferral: REFERRAL_BONUS_USD,
     totalReferrals: referrals.length,
     totalEarnings: earnings.reduce((s, e) => s + Number(e.amount), 0),
     referrals: referrals.map((r) => ({

@@ -9,10 +9,14 @@ function toNumber(value: { toString(): string } | number | null | undefined) {
 }
 
 export type DashboardData = {
+  /** Current funds in the account (available + locked withdrawals). */
   balance: number;
   availableBalance: number;
   lockedBalance: number;
   cryptoBtc: number;
+  /** Profit generated on the platform (tasks, referrals, rewards). */
+  totalRevenue: number;
+  /** @deprecated Prefer totalRevenue */
   totalEarnings: number;
   referralEarnings: number;
   depositTotal: number;
@@ -84,15 +88,18 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
   const cryptoBtc = toNumber(wallet?.cryptoBtc);
   const lockedBalance = toNumber(pendingWithdrawalsAgg._sum.amount);
   const availableBalance = Math.max(0, balance);
-  const totalEarnings = earnings.reduce((sum, e) => sum + toNumber(e.amount), 0);
-  const fiatBalance = Math.max(0, balance - cryptoBtc);
+  const totalRevenue = earnings.reduce((sum, e) => sum + toNumber(e.amount), 0);
+  const depositTotal = toNumber(depositsAgg._sum.amount);
+  const withdrawalTotal = toNumber(withdrawalsAgg._sum.amount);
+  // Total money currently in the account (available wallet + pending withdrawal holds).
+  const totalBalance = availableBalance + lockedBalance;
 
   const portfolioBreakdown =
-    balance > 0
+    totalBalance > 0
       ? [
-          { name: "Available", value: Math.round((availableBalance / (balance + lockedBalance || 1)) * 100) },
-          { name: "Locked", value: Math.round((lockedBalance / (balance + lockedBalance || 1)) * 100) },
-          { name: "Crypto (BTC)", value: Math.round((cryptoBtc / (balance + lockedBalance || 1)) * 100) },
+          { name: "Available", value: Math.round((availableBalance / (totalBalance || 1)) * 100) },
+          { name: "Locked", value: Math.round((lockedBalance / (totalBalance || 1)) * 100) },
+          { name: "Crypto (BTC)", value: Math.round((cryptoBtc / (totalBalance || 1)) * 100) },
         ].filter((s) => s.value > 0)
       : [
           { name: "Available", value: 70 },
@@ -110,14 +117,15 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
     .map(([month, amount]) => ({ month, amount }));
 
   return {
-    balance: balance + lockedBalance,
+    balance: totalBalance,
     availableBalance,
     lockedBalance,
     cryptoBtc,
-    totalEarnings,
+    totalRevenue,
+    totalEarnings: totalRevenue,
     referralEarnings: toNumber(referralEarningsAgg._sum.amount),
-    depositTotal: toNumber(depositsAgg._sum.amount),
-    withdrawalTotal: toNumber(withdrawalsAgg._sum.amount),
+    depositTotal,
+    withdrawalTotal,
     activePlans,
     unreadNotifications,
     dailyTask,

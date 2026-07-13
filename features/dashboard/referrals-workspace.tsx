@@ -9,6 +9,7 @@ import { toast } from "sonner";
 type ReferralData = {
   code: string;
   link: string;
+  bonusPerReferral: number;
   totalReferrals: number;
   totalEarnings: number;
   referrals: { id: string; name: string; email: string; joinedAt: string }[];
@@ -32,12 +33,26 @@ export function ReferralsWorkspace() {
 
   if (!data) return <Card className="animate-pulse p-8 text-muted">Loading referrals…</Card>;
 
+  const bonus = data.bonusPerReferral ?? 5;
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Referrals</h1>
-        <p className="mt-1 text-muted">Invite friends and track referral performance.</p>
+        <p className="mt-1 text-muted">
+          Invite friends with your link. Earn <span className="font-semibold text-amber-400">${bonus.toFixed(2)}</span>{" "}
+          when a new user signs up with your referral and deposits for any investment plan.
+        </p>
       </div>
+
+      <Card className="space-y-3 border-amber-500/30 bg-amber-500/5 p-6">
+        <p className="text-xs uppercase tracking-wide text-amber-400">Offer</p>
+        <p className="text-2xl font-bold tabular-nums text-foreground">${bonus.toFixed(2)} per referral</p>
+        <p className="text-sm text-muted">
+          Your ${bonus.toFixed(2)} bonus is credited after the invited user deposits for an investment plan
+          (once per referred user).
+        </p>
+      </Card>
 
       <Card className="space-y-4 p-6">
         <p className="text-sm text-muted">Your referral link</p>

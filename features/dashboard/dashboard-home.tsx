@@ -46,22 +46,23 @@ export function DashboardHome({ user, data }: DashboardHomeProps) {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { label: "Total balance", value: formatUsd(data.balance) },
-          { label: "Available", value: formatUsd(data.availableBalance) },
-          { label: "Locked", value: formatUsd(data.lockedBalance) },
-          { label: "Total earnings", value: formatUsd(data.totalEarnings) },
+          { label: "Total balance", value: formatUsd(data.balance), hint: "Money currently in your account" },
+          { label: "Available", value: formatUsd(data.availableBalance), hint: "Ready to use or withdraw" },
+          { label: "Locked", value: formatUsd(data.lockedBalance), hint: "Pending withdrawals" },
+          { label: "Total revenue", value: formatUsd(data.totalRevenue), hint: "Profit generated on the platform" },
         ].map((w) => (
           <Card key={w.label} className="border-border/80 bg-card/80 p-4 backdrop-blur">
             <p className="text-xs uppercase tracking-wide text-muted">{w.label}</p>
             <p className="mt-2 text-xl font-bold tabular-nums">{w.value}</p>
+            <p className="mt-1 text-[11px] text-muted">{w.hint}</p>
           </Card>
         ))}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { label: "Deposits", value: formatUsd(data.depositTotal) },
-          { label: "Withdrawals", value: formatUsd(data.withdrawalTotal) },
+          { label: "Money in (deposits)", value: formatUsd(data.depositTotal) },
+          { label: "Money out (withdrawals)", value: formatUsd(data.withdrawalTotal) },
           { label: "Referral earnings", value: formatUsd(data.referralEarnings) },
           { label: "Notifications", value: String(data.unreadNotifications) },
         ].map((w) => (

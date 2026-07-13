@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { activatePlanById } from "@/lib/investments";
 import { dailyearningFor } from "@/lib/investment-plans";
+import { grantReferralPlanDepositBonus } from "@/lib/referrals";
 
 export async function approvePayment(paymentId: string) {
   const payment = await prisma.payment.findUnique({
@@ -52,6 +53,11 @@ export async function approvePayment(paymentId: string) {
     } catch {
       // Ignore auto-activation failures (e.g., already active plan); payment credit still succeeds.
     }
+
+    // Credit referrer once the referred user deposits for any investment plan.
+    await grantReferralPlanDepositBonus(payment.userId).catch((error) => {
+      console.error("[approvePayment] Referral bonus failed:", error);
+    });
   }
 }
 
