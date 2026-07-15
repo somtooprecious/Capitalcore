@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -565,13 +564,68 @@ export function SettingsWorkspace() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [kycStatus, setKycStatus] = useState<string>("PENDING");
+  const [profileMessage, setProfileMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [completingKyc, setCompletingKyc] = useState(false);
+
   useEffect(() => {
     void fetch("/api/user/preferences")
       .then((r) => r.json())
       .then((data: { preferences?: { emailNotifications?: boolean } }) => {
         if (data.preferences) setEmailNotifications(Boolean(data.preferences.emailNotifications));
       });
+
+    void fetch("/api/user/kyc")
+      .then((r) => r.json())
+      .then((data: { name?: string; email?: string; kycStatus?: string }) => {
+        const parts = (data.name ?? "").trim().split(/\s+/).filter(Boolean);
+        setFirstName(parts[0] ?? "");
+        setLastName(parts.slice(1).join(" ") ?? "");
+        setEmail(data.email ?? "");
+        setKycStatus(data.kycStatus ?? "PENDING");
+      });
   }, []);
+
+  const saveProfile = async () => {
+    setProfileMessage(null);
+    setSavingProfile(true);
+    try {
+      const res = await fetch("/api/user/kyc", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ firstName: firstName.trim(), lastName: lastName.trim() }),
+      });
+      const data = (await res.json()) as { error?: string; message?: string };
+      if (!res.ok) {
+        setProfileMessage({ type: "error", text: data.error ?? "Could not save profile." });
+        return;
+      }
+      setProfileMessage({ type: "success", text: data.message ?? "Profile saved." });
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const completeKyc = async () => {
+    setProfileMessage(null);
+    setCompletingKyc(true);
+    try {
+      const res = await fetch("/api/user/kyc", { method: "POST" });
+      const data = (await res.json()) as { error?: string; message?: string; kycStatus?: string };
+      if (!res.ok) {
+        setProfileMessage({ type: "error", text: data.error ?? "Could not complete KYC." });
+        return;
+      }
+      setKycStatus(data.kycStatus ?? "APPROVED");
+      setProfileMessage({ type: "success", text: data.message ?? "KYC verification completed." });
+    } finally {
+      setCompletingKyc(false);
+    }
+  };
 
   const saveNotifications = async () => {
     const res = await fetch("/api/user/preferences", {
@@ -589,6 +643,65 @@ export function SettingsWorkspace() {
         description="Security preferences, notifications, and account controls."
       />
       <div className="grid max-w-2xl gap-4">
+        <Card className="space-y-4 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-semibold">Profile &amp; KYC verification</h2>
+            <span
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-medium uppercase tracking-wide",
+                kycStatus === "APPROVED"
+                  ? "border-green-500/40 bg-green-500/10 text-green-400"
+                  : "border-amber-500/40 bg-amber-500/10 text-amber-400",
+              )}
+            >
+              KYC: {kycStatus.replaceAll("_", " ")}
+            </span>
+          </div>
+          <p className="text-sm text-muted">
+            Add your first and last name, save your profile, then complete KYC to verify your account.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium">First name</label>
+              <Input
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="John"
+                autoComplete="given-name"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium">Last name</label>
+              <Input
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Doe"
+                autoComplete="family-name"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium">Email</label>
+            <Input value={email} readOnly disabled className="opacity-70" />
+          </div>
+          {profileMessage ? (
+            <StatusMessage message={profileMessage.text} type={profileMessage.type} />
+          ) : null}
+          <div className="flex flex-wrap gap-3">
+            <Button type="button" variant="outline" onClick={saveProfile} disabled={savingProfile}>
+              {savingProfile ? "Saving…" : "Save profile"}
+            </Button>
+            {kycStatus === "APPROVED" ? (
+              <Button type="button" variant="outline" disabled>
+                KYC verified ✓
+              </Button>
+            ) : (
+              <Button type="button" onClick={completeKyc} disabled={completingKyc}>
+                {completingKyc ? "Verifying…" : "Complete KYC"}
+              </Button>
+            )}
+          </div>
+        </Card>
         <ClerkSecurityPanel />
         <Card className="space-y-3 p-6">
           <h2 className="font-semibold">Email notifications</h2>
@@ -608,9 +721,6 @@ export function SettingsWorkspace() {
           </Button>
         </Card>
         {message ? <p className="text-sm text-green-400">{message}</p> : null}
-        <Link href="/kyc-verification" className={cn(buttonVariants({ variant: "default" }), "w-fit")}>
-          Complete KYC verification
-        </Link>
       </div>
     </>
   );
