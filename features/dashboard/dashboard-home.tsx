@@ -6,7 +6,8 @@ import { Area, AreaChart, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAx
 import { Card } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { TradingViewWidget } from "@/components/trading-view-widget";
-import { formatDate, formatUsd } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { UsdtAmount, formatUsdt } from "@/components/usdt-amount";
 import type { DashboardData } from "@/lib/dashboard-data";
 import { cn } from "@/lib/utils";
 
@@ -46,14 +47,16 @@ export function DashboardHome({ user, data }: DashboardHomeProps) {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { label: "Total balance", value: formatUsd(data.balance), hint: "Money currently in your account" },
-          { label: "Available", value: formatUsd(data.availableBalance), hint: "Ready to use or withdraw" },
-          { label: "Locked", value: formatUsd(data.lockedBalance), hint: "Pending withdrawals" },
-          { label: "Total revenue", value: formatUsd(data.totalRevenue), hint: "Profit generated on the platform" },
+          { label: "Total balance", amount: data.balance, hint: "Money currently in your account" },
+          { label: "Available", amount: data.availableBalance, hint: "Ready to use or withdraw" },
+          { label: "Locked", amount: data.lockedBalance, hint: "Pending withdrawals" },
+          { label: "Total revenue", amount: data.totalRevenue, hint: "Profit generated on the platform" },
         ].map((w) => (
           <Card key={w.label} className="border-border/80 bg-card/80 p-4 backdrop-blur">
             <p className="text-xs uppercase tracking-wide text-muted">{w.label}</p>
-            <p className="mt-2 text-xl font-bold tabular-nums">{w.value}</p>
+            <div className="mt-2">
+              <UsdtAmount amount={w.amount} size="lg" />
+            </div>
             <p className="mt-1 text-[11px] text-muted">{w.hint}</p>
           </Card>
         ))}
@@ -61,16 +64,21 @@ export function DashboardHome({ user, data }: DashboardHomeProps) {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { label: "Money in (deposits)", value: formatUsd(data.depositTotal) },
-          { label: "Money out (withdrawals)", value: formatUsd(data.withdrawalTotal) },
-          { label: "Referral earnings", value: formatUsd(data.referralEarnings) },
-          { label: "Notifications", value: String(data.unreadNotifications) },
+          { label: "Money in (deposits)", amount: data.depositTotal },
+          { label: "Money out (withdrawals)", amount: data.withdrawalTotal },
+          { label: "Referral earnings", amount: data.referralEarnings },
         ].map((w) => (
           <Card key={w.label} className="p-4">
             <p className="text-xs uppercase tracking-wide text-muted">{w.label}</p>
-            <p className="mt-2 text-lg font-bold tabular-nums">{w.value}</p>
+            <div className="mt-2">
+              <UsdtAmount amount={w.amount} size="md" />
+            </div>
           </Card>
         ))}
+        <Card className="p-4">
+          <p className="text-xs uppercase tracking-wide text-muted">Notifications</p>
+          <p className="mt-2 text-lg font-bold tabular-nums">{data.unreadNotifications}</p>
+        </Card>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -119,7 +127,7 @@ export function DashboardHome({ user, data }: DashboardHomeProps) {
               <AreaChart data={data.earningsChart.length ? data.earningsChart : [{ month: "—", amount: 0 }]}>
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(v) => formatUsd(Number(v))} />
+                <Tooltip formatter={(v) => `${formatUsdt(Number(v))} USDT`} />
                 <Area type="monotone" dataKey="amount" stroke="#f5b342" fill="#f5b34233" />
               </AreaChart>
             </ResponsiveContainer>
@@ -152,15 +160,12 @@ export function DashboardHome({ user, data }: DashboardHomeProps) {
                     {formatDate(tx.createdAt)} · {tx.type}
                   </p>
                 </div>
-                <span
-                  className={cn(
-                    "font-medium tabular-nums",
-                    tx.type === "WITHDRAWAL" ? "text-red-400" : "text-green-400",
-                  )}
-                >
-                  {tx.type === "WITHDRAWAL" ? "−" : "+"}
-                  {formatUsd(tx.amount)}
-                </span>
+                <UsdtAmount
+                  amount={tx.amount}
+                  sign={tx.type === "WITHDRAWAL" ? "−" : "+"}
+                  size="sm"
+                  className={tx.type === "WITHDRAWAL" ? "text-red-400" : "text-green-400"}
+                />
               </li>
             ))}
           </ul>

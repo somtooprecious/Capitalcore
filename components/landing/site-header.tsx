@@ -11,8 +11,7 @@ import { MarketTicker } from "@/components/landing/market-ticker";
 import { NotificationBell } from "@/components/landing/notification-bell";
 import { useTranslations } from "@/hooks/use-translations";
 import { useWalletBalance } from "@/hooks/use-wallet-balance";
-import { useLocale } from "@/components/providers";
-import { formatCurrency, type Currency } from "@/lib/i18n";
+import { UsdtIcon, UsdtAmount, formatUsdt } from "@/components/usdt-amount";
 import { isOwner } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +40,6 @@ export function SiteHeader() {
   const [balanceOpen, setBalanceOpen] = useState(false);
   const balanceRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated } = useUserSession();
-  const { currency: localeCurrency } = useLocale();
   const { balance, availableBalance, lockedBalance, isLoading } = useWalletBalance();
 
   useEffect(() => {
@@ -56,11 +54,10 @@ export function SiteHeader() {
 
   const isAuthenticatedResolved = isAuthenticated && !!user;
   const initials = getInitials(user?.name, user?.email);
-  const activeCurrency = localeCurrency as Currency;
   const displayBalance = isAuthenticatedResolved
     ? isLoading
       ? "···"
-      : formatCurrency(balance, activeCurrency)
+      : formatUsdt(balance)
     : "—";
   const ownerAccess = isAuthenticatedResolved && isOwner(user?.role);
 
@@ -95,31 +92,48 @@ export function SiteHeader() {
                 aria-expanded={balanceOpen}
                 onClick={() => setBalanceOpen((v) => !v)}
               >
-                {displayBalance}
+                {isAuthenticatedResolved && !isLoading ? (
+                  <>
+                    <UsdtIcon size={16} />
+                    <span>
+                      {displayBalance} <span className="text-muted">USDT</span>
+                    </span>
+                  </>
+                ) : (
+                  displayBalance
+                )}
                 <ChevronDown className="h-3.5 w-3.5 text-muted" aria-hidden />
               </button>
               {balanceOpen ? (
                 <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-card shadow-xl">
                   <div className="border-b border-border px-3 py-2.5">
                     <p className="text-xs text-muted">{h.balance}</p>
-                    <p className="mt-1 text-base font-semibold tabular-nums text-foreground">
-                      {isLoading ? "···" : formatCurrency(balance, activeCurrency)}
-                    </p>
+                    <div className="mt-1">
+                      {isLoading ? (
+                        <p className="text-base font-semibold tabular-nums text-foreground">···</p>
+                      ) : (
+                        <UsdtAmount amount={balance} size="md" />
+                      )}
+                    </div>
                   </div>
                   {isAuthenticatedResolved ? (
                     <>
                       <div className="space-y-1 border-b border-border px-3 py-2 text-xs">
                         <div className="flex items-center justify-between gap-3">
                           <span className="text-muted">Available</span>
-                          <span className="font-medium tabular-nums text-foreground">
-                            {isLoading ? "—" : formatCurrency(availableBalance, activeCurrency)}
-                          </span>
+                          {isLoading ? (
+                            <span>—</span>
+                          ) : (
+                            <UsdtAmount amount={availableBalance} size="sm" className="text-foreground" />
+                          )}
                         </div>
                         <div className="flex items-center justify-between gap-3">
                           <span className="text-muted">Locked</span>
-                          <span className="font-medium tabular-nums text-foreground">
-                            {isLoading ? "—" : formatCurrency(lockedBalance, activeCurrency)}
-                          </span>
+                          {isLoading ? (
+                            <span>—</span>
+                          ) : (
+                            <UsdtAmount amount={lockedBalance} size="sm" className="text-foreground" />
+                          )}
                         </div>
                       </div>
                       <Link href="/deposits" className="block px-3 py-2 text-sm hover:bg-white/5" onClick={() => setBalanceOpen(false)}>

@@ -7,6 +7,7 @@ import { Check, Sparkles, TrendingUp, CalendarClock, Wallet, ArrowUpRight } from
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatUsd, formatDate } from "@/lib/format";
+import { UsdtIcon, UsdtLabel, UsdtAmount } from "@/components/usdt-amount";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -218,7 +219,7 @@ export function InvestmentPlansWorkspace() {
                 per completed daily task · runs until {formatDate(activePlan.endDate)}
               </p>
               <p className="mt-2 text-sm text-muted">
-                Wallet balance: <span className="font-semibold text-foreground">{formatUsd(data.balance)}</span>
+                Wallet balance: <UsdtAmount amount={data.balance} size="sm" className="inline-flex text-foreground" />
                 . Upgrade by paying only the difference to a higher plan.
               </p>
             </div>
@@ -234,6 +235,7 @@ export function InvestmentPlansWorkspace() {
                   <option value="BTC">BTC</option>
                   <option value="ETH">ETH</option>
                 </select>
+                {asset === "USDT" ? <UsdtIcon size={16} className="ml-1 inline-block align-middle" /> : null}
               </label>
               <Link href="/daily-tasks">
                 <Button variant="accent">Complete today&apos;s task</Button>
@@ -245,7 +247,7 @@ export function InvestmentPlansWorkspace() {
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card/60 px-5 py-4">
           <p className="text-sm text-muted">
             Your wallet balance:{" "}
-            <span className="font-semibold text-foreground">{formatUsd(data.balance)}</span>
+            <UsdtAmount amount={data.balance} size="sm" className="inline-flex text-foreground" />
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <label className="text-sm text-muted">
@@ -259,6 +261,7 @@ export function InvestmentPlansWorkspace() {
                 <option value="BTC">BTC</option>
                 <option value="ETH">ETH</option>
               </select>
+              {asset === "USDT" ? <UsdtIcon size={16} className="ml-1 inline-block align-middle" /> : null}
             </label>
             <Link href="/deposits" className="text-sm font-medium text-primary hover:underline">
               Need wallet funds? Make a deposit →
@@ -281,13 +284,15 @@ export function InvestmentPlansWorkspace() {
           </p>
           <p>
             <span className="text-muted">Asset:</span>{" "}
-            <span className="font-semibold text-foreground">
-              {paymentInfo.asset === "USDT" ? "USDT BEP 20" : paymentInfo.asset}
-            </span>
+            {paymentInfo.asset === "USDT" ? (
+              <UsdtLabel suffix="BEP 20" size={16} className="font-semibold text-foreground" />
+            ) : (
+              <span className="font-semibold text-foreground">{paymentInfo.asset}</span>
+            )}
           </p>
-          <p>
+          <p className="flex flex-wrap items-center gap-2">
             <span className="text-muted">Amount to send:</span>{" "}
-            <span className="font-semibold text-foreground">{formatUsd(paymentInfo.amount)} equivalent</span>
+            <UsdtAmount amount={paymentInfo.amount} size="sm" className="text-foreground" />
             {paymentInfo.isUpgrade ? (
               <span className="text-muted"> (upgrade top-up only)</span>
             ) : null}

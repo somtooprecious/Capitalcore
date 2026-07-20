@@ -11,6 +11,7 @@ import {
   calculateWithdrawalFees,
   type WithdrawalAssetCode,
 } from "@/lib/withdrawal-fees";
+import { UsdtIcon, UsdtAmount, UsdtLabel } from "@/components/usdt-amount";
 import { cn } from "@/lib/utils";
 
 function WorkspaceHeader({ title, description }: { title: string; description: string }) {
@@ -26,6 +27,13 @@ function StatusMessage({ message, type }: { message: string; type: "success" | "
   return (
     <p className={cn("text-sm", type === "success" ? "text-green-400" : "text-red-400")}>{message}</p>
   );
+}
+
+function AssetLabel({ asset }: { asset: string }) {
+  if (asset === "USDT") {
+    return <UsdtLabel suffix="BEP 20" size={16} className="font-semibold text-foreground" />;
+  }
+  return <span className="font-semibold text-foreground">{asset}</span>;
 }
 
 export function DepositsWorkspace() {
@@ -88,9 +96,6 @@ export function DepositsWorkspace() {
     }
   };
 
-  const assetLabel =
-    depositInfo?.asset === "USDT" ? "USDT BEP 20" : depositInfo?.asset ?? "";
-
   return (
     <>
       <WorkspaceHeader
@@ -100,7 +105,7 @@ export function DepositsWorkspace() {
       <Card className="max-w-xl space-y-4 p-6">
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Amount (USD equivalent)</label>
+            <label className="mb-1.5 block text-sm font-medium">Amount (USDT)</label>
             <Input
               type="number"
               min="10"
@@ -111,7 +116,10 @@ export function DepositsWorkspace() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Crypto asset</label>
+            <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
+              Crypto asset
+              {asset === "USDT" ? <UsdtIcon size={16} /> : null}
+            </label>
             <select
               className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm"
               value={asset}
@@ -129,13 +137,15 @@ export function DepositsWorkspace() {
                 <span className="text-muted">Reference:</span>{" "}
                 <span className="font-mono font-medium text-foreground">{depositInfo.reference}</span>
               </p>
-              <p>
-                <span className="text-muted">Send {assetLabel} to:</span>
+              <p className="flex flex-wrap items-center gap-2">
+                <span className="text-muted">Send</span>
+                <AssetLabel asset={depositInfo.asset} />
+                <span className="text-muted">to:</span>
               </p>
               <p className="break-all font-mono text-xs text-foreground">{depositInfo.depositAddress}</p>
-              <p className="text-xs text-muted">
-                Amount: ${depositInfo.amount.toFixed(2)} USD equivalent. Include your reference in the memo if the
-                network supports it.
+              <p className="flex flex-wrap items-center gap-2 text-xs text-muted">
+                Amount: <UsdtAmount amount={depositInfo.amount} size="sm" className="font-medium text-foreground" />
+                Include your reference in the memo if the network supports it.
               </p>
             </div>
           ) : null}
@@ -227,7 +237,7 @@ export function WithdrawalsWorkspace() {
       <Card className="max-w-xl space-y-4 p-6">
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Amount (USD)</label>
+            <label className="mb-1.5 block text-sm font-medium">Amount (USDT)</label>
             <Input
               type="number"
               min="20"
@@ -238,7 +248,10 @@ export function WithdrawalsWorkspace() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium">Destination asset</label>
+            <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
+              Destination asset
+              {asset === "USDT" ? <UsdtIcon size={16} /> : null}
+            </label>
             <select
               className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm"
               value={asset}
@@ -267,15 +280,17 @@ export function WithdrawalsWorkspace() {
           </div>
           {amountValue > 0 ? (
             <div className="space-y-1.5 rounded-xl border border-border bg-background/60 px-4 py-3 text-sm">
-              <div className="flex justify-between gap-3 text-muted">
+              <div className="flex items-center justify-between gap-3 text-muted">
                 <span>10% withdrawal fee</span>
-                <span className="tabular-nums">−${feePreview.percentFee.toFixed(2)}</span>
+                <UsdtAmount amount={feePreview.percentFee} sign="−" size="sm" className="font-medium text-muted" />
               </div>
-              <div className="flex justify-between gap-3 border-t border-border pt-2 font-medium text-foreground">
+              <div className="flex items-center justify-between gap-3 border-t border-border pt-2 font-medium text-foreground">
                 <span>You receive</span>
-                <span className="tabular-nums text-emerald-400">
-                  ${Math.max(0, feePreview.netPayout).toFixed(2)}
-                </span>
+                <UsdtAmount
+                  amount={Math.max(0, feePreview.netPayout)}
+                  size="sm"
+                  className="text-emerald-400"
+                />
               </div>
             </div>
           ) : null}
@@ -296,7 +311,10 @@ export function WithdrawalsWorkspace() {
             history.map((w) => (
               <li key={w.id} className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
                 <div>
-                  <p className="font-medium">${w.amount.toFixed(2)} · {w.status}</p>
+                  <div className="flex flex-wrap items-center gap-2 font-medium">
+                    <UsdtAmount amount={w.amount} size="sm" />
+                    <span>· {w.status}</span>
+                  </div>
                   <p className="text-xs text-muted">{w.reference} · {new Date(w.createdAt).toLocaleString()}</p>
                 </div>
                 <span className="max-w-[200px] truncate text-xs text-muted">{w.destination}</span>

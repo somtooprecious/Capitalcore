@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { useTranslations } from "@/hooks/use-translations";
 import type { ExchangeId, SymbolQuote } from "@/lib/crypto-quotes";
 import { cryptoIconUrl, formatQuotePrice } from "@/lib/crypto-quotes";
+import { UsdtIcon } from "@/components/usdt-amount";
 import { cn } from "@/lib/utils";
 
 type QuotesResponse = {
@@ -52,8 +53,11 @@ function QuoteCard({ quote }: { quote: SymbolQuote }) {
           className="h-7 w-7 shrink-0 rounded-full"
           unoptimized
         />
-        <span className="text-sm font-semibold tracking-wide text-foreground">
-          {quote.symbol} <span className="text-muted">/ USDT</span>
+        <span className="inline-flex items-center gap-1.5 text-sm font-semibold tracking-wide text-foreground">
+          {quote.symbol}{" "}
+          <span className="inline-flex items-center gap-1 text-muted">
+            / <UsdtIcon size={14} /> USDT
+          </span>
         </span>
       </div>
       <ul className="divide-y divide-border/40">

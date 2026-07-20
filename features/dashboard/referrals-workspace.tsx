@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UsdtAmount } from "@/components/usdt-amount";
 import { toast } from "sonner";
 
 type ReferralData = {
@@ -73,7 +74,9 @@ export function ReferralsWorkspace() {
         </Card>
         <Card className="p-5">
           <p className="text-xs uppercase text-muted">Referral earnings</p>
-          <p className="mt-2 text-2xl font-bold tabular-nums">${data.totalEarnings.toFixed(2)}</p>
+          <div className="mt-2">
+            <UsdtAmount amount={data.totalEarnings} size="xl" />
+          </div>
         </Card>
       </div>
 

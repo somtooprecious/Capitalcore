@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { UsdtAmount, formatUsdt } from "@/components/usdt-amount";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 type EarningsData = {
@@ -27,7 +28,7 @@ export function EarningsWorkspace() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Earnings</h1>
-        <p className="mt-1 text-muted">Track configured rewards, daily tasks, and referral income.</p>
+        <p className="mt-1 text-muted">Track configured rewards, daily tasks, and referral income in USDT.</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <a href="/api/exports/earnings?format=csv" className="rounded-xl border border-border px-3 py-1.5 text-sm hover:bg-white/5">
             Export CSV
@@ -41,12 +42,16 @@ export function EarningsWorkspace() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card className="p-5">
           <p className="text-xs uppercase text-muted">Total earnings</p>
-          <p className="mt-2 text-2xl font-bold tabular-nums">${data.total.toFixed(2)}</p>
+          <div className="mt-2">
+            <UsdtAmount amount={data.total} size="xl" />
+          </div>
         </Card>
         {Object.entries(data.bySource).map(([source, amount]) => (
           <Card key={source} className="p-5">
             <p className="text-xs uppercase text-muted">{source.replaceAll("_", " ")}</p>
-            <p className="mt-2 text-2xl font-bold tabular-nums">${amount.toFixed(2)}</p>
+            <div className="mt-2">
+              <UsdtAmount amount={amount} size="xl" />
+            </div>
           </Card>
         ))}
       </div>
@@ -59,8 +64,8 @@ export function EarningsWorkspace() {
               <BarChart data={chartData}>
                 <XAxis dataKey="source" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(v) => `$${Number(v).toFixed(2)}`} />
-                <Bar dataKey="amount" fill="#f5b342" radius={[6, 6, 0, 0]} />
+                <Tooltip formatter={(v) => `${formatUsdt(Number(v))} USDT`} />
+                <Bar dataKey="amount" fill="#26A17B" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -76,12 +81,12 @@ export function EarningsWorkspace() {
             <li className="px-5 py-8 text-sm text-muted">No earnings recorded yet.</li>
           ) : (
             data.earnings.map((e) => (
-              <li key={e.id} className="flex items-center justify-between px-5 py-3 text-sm">
+              <li key={e.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
                 <div>
                   <p className="font-medium">{e.source.replaceAll("_", " ")}</p>
                   <p className="text-xs text-muted">{new Date(e.createdAt).toLocaleString()}</p>
                 </div>
-                <span className="font-medium text-green-400">+${e.amount.toFixed(2)}</span>
+                <UsdtAmount amount={e.amount} sign="+" size="sm" className="text-green-400" />
               </li>
             ))
           )}
