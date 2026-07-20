@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { UsdtAmount } from "@/components/usdt-amount";
 import { cn } from "@/lib/utils";
 import { formatUsd } from "@/lib/format";
 import { toast } from "sonner";
@@ -67,6 +68,10 @@ export function DailyTasksWorkspace() {
   }, []);
 
   const complete = async () => {
+    if (!data?.activePlan) {
+      toast.error("Deposit for an investment plan first to unlock daily task rewards.");
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch("/api/daily-tasks/complete", { method: "POST" });
@@ -75,7 +80,9 @@ export function DailyTasksWorkspace() {
         toast.error(json.error ?? "Could not complete task.");
         return;
       }
-      toast.success(`Reward credited: $${json.rewardAmount?.toFixed(2)} · Streak ${json.streakCount} day(s)`);
+      toast.success(
+        `Reward credited: ${json.rewardAmount?.toFixed(2)} USDT · Streak ${json.streakCount} day(s)`,
+      );
       await load();
     } finally {
       setSubmitting(false);
@@ -86,12 +93,15 @@ export function DailyTasksWorkspace() {
     return <Card className="animate-pulse p-8 text-muted">Loading daily task…</Card>;
   }
 
+  const canEarn = Boolean(data.activePlan);
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Daily trading task</h1>
         <p className="mt-1 max-w-2xl text-muted">
-          Complete one configured task per day. Rewards are set by platform administration—not live AI trading profits.
+          Complete one task per day after depositing for an investment plan. You earn{" "}
+          {data.dailyRoiPercent}% of your plan deposit in USDT.
         </p>
       </div>
 
@@ -107,10 +117,12 @@ export function DailyTasksWorkspace() {
                 "rounded-full border px-3 py-1 text-xs font-medium",
                 data.completedToday
                   ? "border-green-500/30 bg-green-500/10 text-green-400"
-                  : "border-amber-500/30 bg-amber-500/10 text-amber-400",
+                  : canEarn
+                    ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
+                    : "border-border bg-card text-muted",
               )}
             >
-              {data.completedToday ? "Completed" : "Available"}
+              {data.completedToday ? "Completed" : canEarn ? "Available" : "Locked"}
             </span>
           </div>
           <p className="text-sm leading-relaxed text-muted">{data.task.description}</p>
@@ -120,21 +132,18 @@ export function DailyTasksWorkspace() {
               <p className="text-xs uppercase tracking-wide text-green-400">
                 {data.activePlan.name} plan · {formatUsd(data.activePlan.amount)}
               </p>
-              <p className="mt-1 text-sm text-foreground">
+              <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-foreground">
                 Today&apos;s reward:{" "}
-                <span className="font-semibold text-green-400">
-                  {formatUsd(data.todayReward ?? data.activePlan.dailyEarning)}
-                </span>{" "}
+                <UsdtAmount amount={data.todayReward ?? data.activePlan.dailyEarning} size="sm" className="text-green-400" />
                 <span className="text-muted">({data.dailyRoiPercent}% of your deposit)</span>
               </p>
             </div>
           ) : (
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm">
-              <p className="text-foreground">
-                You don&apos;t have an active investment plan yet.
-              </p>
+              <p className="font-medium text-foreground">Daily rewards are locked</p>
               <p className="mt-1 text-muted">
-                Choose a plan to earn {data.dailyRoiPercent}% of your deposit every day you complete this task.
+                You must deposit for an investment plan before you can complete this task and earn{" "}
+                {data.dailyRoiPercent}% daily. Without a plan deposit, no reward is credited.
               </p>
               <Link href="/plans" className="mt-2 inline-block font-medium text-amber-400 hover:underline">
                 View investment plans →
@@ -143,9 +152,18 @@ export function DailyTasksWorkspace() {
           )}
 
           {!data.completedToday ? (
-            <Button onClick={complete} disabled={submitting} className="w-full sm:w-auto">
-              {submitting ? "Processing…" : "Complete today's task"}
-            </Button>
+            canEarn ? (
+              <Button onClick={complete} disabled={submitting} className="w-full sm:w-auto">
+                {submitting ? "Processing…" : "Complete today's task"}
+              </Button>
+            ) : (
+              <Link
+                href="/plans"
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-border px-5 text-sm font-medium hover:bg-white/5"
+              >
+                Deposit for a plan to unlock
+              </Link>
+            )
           ) : null}
         </Card>
 
@@ -169,12 +187,12 @@ export function DailyTasksWorkspace() {
         ) : (
           <ul className="divide-y divide-border">
             {data.history.map((h) => (
-              <li key={h.id} className="flex items-center justify-between px-5 py-3 text-sm">
+              <li key={h.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
                 <div>
                   <p className="font-medium">{h.title}</p>
                   <p className="text-xs text-muted">{h.dayKey}</p>
                 </div>
-                <span className="font-medium text-green-400">+${h.rewardAmount.toFixed(2)}</span>
+                <UsdtAmount amount={h.rewardAmount} sign="+" size="sm" className="text-green-400" />
               </li>
             ))}
           </ul>

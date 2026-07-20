@@ -108,21 +108,16 @@ export async function completeDailyTask(userId: string) {
     });
   }
 
-  // Earnings are driven by the user's active investment plan: every completed
-  // task pays 3.5% of their deposited plan amount. If they have no active plan,
-  // fall back to the admin-configured platform reward.
+  // Earnings require an active investment plan: 3.5% of the deposited plan amount.
+  // Users without a plan deposit cannot be credited.
   const activePlan = await getActivePlan(userId);
-  let rewardAmount: number;
-  if (activePlan) {
-    rewardAmount = dailyearningFor(activePlan.amount);
-  } else {
-    const wallet = await prisma.wallet.findUnique({ where: { userId } });
-    const balance = toNumber(wallet?.balance);
-    rewardAmount = config.dailyTaskRewardValue;
-    if (config.dailyTaskRewardType === "PERCENT" && balance > 0) {
-      rewardAmount = (balance * config.dailyTaskRewardValue) / 100;
-    }
+  if (!activePlan) {
+    throw new Error(
+      "Deposit for an investment plan before completing the daily task. Rewards are 3.5% of your plan deposit.",
+    );
   }
+
+  const rewardAmount = dailyearningFor(activePlan.amount);
 
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
@@ -163,14 +158,14 @@ export async function completeDailyTask(userId: string) {
         amount: rewardAmount,
         status: "COMPLETED",
         reference,
-        description: `Daily task reward (${task.title})`,
+        description: `Daily task reward · ${activePlan.name} (${DAILY_ROI_PERCENT}% of $${activePlan.amount.toFixed(2)})`,
       },
     });
     await tx.notification.create({
       data: {
         userId,
         title: "Daily task completed",
-        body: `You earned $${rewardAmount.toFixed(2)}. Streak: ${streakCount} day(s).`,
+        body: `You earned $${rewardAmount.toFixed(2)} USDT (${DAILY_ROI_PERCENT}% of your ${activePlan.name} plan). Streak: ${streakCount} day(s).`,
         type: "DAILY_TASK",
       },
     });
