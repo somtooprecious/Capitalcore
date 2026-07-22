@@ -4,11 +4,22 @@ import { requireApiUser } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { getPlanPaymentAmount } from "@/lib/investments";
 
-const CRYPTO_ADDRESSES: Record<string, string> = {
-  BTC: process.env.CRYPTO_BTC_ADDRESS ?? "bc1qcapitalcore-demo-deposit",
-  USDT: process.env.CRYPTO_USDT_ADDRESS ?? "0xCapitalCoreDemoUsdtDeposit",
-  ETH: process.env.CRYPTO_ETH_ADDRESS ?? "0xCapitalCoreDemoEthDeposit",
-};
+const USDT_ADDRESS = process.env.CRYPTO_USDT_ADDRESS ?? "0xCapitalCoreDemoUsdtDeposit";
+const DEPOSIT_ASSET = "USDT";
+const DEPOSIT_NETWORK = "BEP20";
+const ASSET_LABEL = "USDT BEP 20";
+
+export async function GET() {
+  const auth = await requireApiUser();
+  if ("error" in auth) return auth.error;
+
+  return NextResponse.json({
+    asset: DEPOSIT_ASSET,
+    network: DEPOSIT_NETWORK,
+    depositAddress: USDT_ADDRESS,
+    assetLabel: ASSET_LABEL,
+  });
+}
 
 export async function POST(req: Request) {
   const auth = await requireApiUser();
@@ -17,11 +28,14 @@ export async function POST(req: Request) {
 
   const body = (await req.json()) as { amount?: number; asset?: string; planId?: string };
   let amount = Number(body.amount);
-  const asset = (body.asset ?? "BTC").toUpperCase();
+  const asset = (body.asset ?? DEPOSIT_ASSET).toUpperCase();
   const planId = body.planId;
 
-  if (!CRYPTO_ADDRESSES[asset]) {
-    return NextResponse.json({ error: "Unsupported crypto asset." }, { status: 400 });
+  if (asset !== DEPOSIT_ASSET) {
+    return NextResponse.json(
+      { error: "Only USDT BEP 20 deposits are supported." },
+      { status: 400 },
+    );
   }
 
   let plan:
@@ -56,9 +70,7 @@ export async function POST(req: Request) {
   }
 
   const reference = `CRYPTO-${randomBytes(6).toString("hex").toUpperCase()}`;
-  const depositAddress = CRYPTO_ADDRESSES[asset];
-  const network = asset === "USDT" ? "BEP20" : null;
-  const assetLabel = asset === "USDT" ? "USDT BEP 20" : asset;
+  const depositAddress = USDT_ADDRESS;
 
   await prisma.$transaction([
     prisma.payment.create({
@@ -70,8 +82,8 @@ export async function POST(req: Request) {
         reference,
         status: "PENDING",
         metadata: {
-          asset,
-          network,
+          asset: DEPOSIT_ASSET,
+          network: DEPOSIT_NETWORK,
           depositAddress,
           purpose,
           planId: plan?.id,
@@ -90,11 +102,9 @@ export async function POST(req: Request) {
         reference,
         description: plan
           ? isUpgrade
-            ? `Plan upgrade top-up (${assetLabel}) · ${plan.name}`
-            : `Crypto deposit (${assetLabel}) · ${plan.name}`
-          : network
-            ? `Crypto deposit (${assetLabel})`
-            : `Crypto deposit (${asset})`,
+            ? `Plan upgrade top-up (${ASSET_LABEL}) · ${plan.name}`
+            : `Crypto deposit (${ASSET_LABEL}) · ${plan.name}`
+          : `Crypto deposit (${ASSET_LABEL})`,
       },
     }),
   ]);
@@ -102,15 +112,15 @@ export async function POST(req: Request) {
   return NextResponse.json({
     reference,
     depositAddress,
-    asset,
-    network,
+    asset: DEPOSIT_ASSET,
+    network: DEPOSIT_NETWORK,
     amount,
     planName: plan?.name,
     isUpgrade,
     message: plan
       ? isUpgrade
-        ? `Send exactly ${amount} USD equivalent in ${assetLabel} to upgrade to ${plan.name}. Include your reference in memo if supported.`
-        : `Send exactly ${amount} USD equivalent in ${assetLabel} to activate ${plan.name}. Include your reference in memo if supported.`
-      : `Send the equivalent USD amount in ${assetLabel} and include your reference in the memo if supported.`,
+        ? `Send exactly ${amount} USDT (${ASSET_LABEL}) to upgrade to ${plan.name}.`
+        : `Send exactly ${amount} USDT (${ASSET_LABEL}) to activate ${plan.name}.`
+      : `Send ${amount} USDT on the BEP 20 network to the address below.`,
   });
 }

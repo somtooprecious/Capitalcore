@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Copy, Hash, Share2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import {
   calculateWithdrawalFees,
   type WithdrawalAssetCode,
 } from "@/lib/withdrawal-fees";
-import { UsdtIcon, UsdtAmount, UsdtLabel } from "@/components/usdt-amount";
+import { UsdtIcon, UsdtAmount } from "@/components/usdt-amount";
 import { cn } from "@/lib/utils";
 
 function WorkspaceHeader({ title, description }: { title: string; description: string }) {
@@ -29,32 +30,73 @@ function StatusMessage({ message, type }: { message: string; type: "success" | "
   );
 }
 
-function AssetLabel({ asset }: { asset: string }) {
-  if (asset === "USDT") {
-    return <UsdtLabel suffix="BEP 20" size={16} className="font-semibold text-foreground" />;
-  }
-  return <span className="font-semibold text-foreground">{asset}</span>;
-}
-
 export function DepositsWorkspace() {
+  const [depositAddress, setDepositAddress] = useState("");
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
-  const [asset, setAsset] = useState("BTC");
+  const [showAmount, setShowAmount] = useState(false);
+  const [reference, setReference] = useState<string | null>(null);
+  const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [depositInfo, setDepositInfo] = useState<{
-    reference: string;
-    depositAddress: string;
-    asset: string;
-    amount: number;
-  } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingAddress, setLoadingAddress] = useState(true);
 
-  const onSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/payments/crypto");
+        const data = (await res.json()) as { depositAddress?: string; error?: string };
+        if (!res.ok || !data.depositAddress) {
+          setStatus({ type: "error", text: data.error ?? "Could not load deposit address." });
+          return;
+        }
+        setDepositAddress(data.depositAddress);
+        const QRCode = (await import("qrcode")).default;
+        const url = await QRCode.toDataURL(data.depositAddress, {
+          width: 280,
+          margin: 2,
+          color: { dark: "#111111", light: "#ffffff" },
+        });
+        setQrDataUrl(url);
+      } catch {
+        setStatus({ type: "error", text: "Could not load deposit address." });
+      } finally {
+        setLoadingAddress(false);
+      }
+    })();
+  }, []);
+
+  const copyAddress = async () => {
+    if (!depositAddress) return;
+    try {
+      await navigator.clipboard.writeText(depositAddress);
+      setStatus({ type: "success", text: "USDT BEP 20 address copied." });
+    } catch {
+      setStatus({ type: "error", text: "Could not copy address." });
+    }
+  };
+
+  const shareAddress = async () => {
+    if (!depositAddress) return;
+    const text = `USDT (BEP20) deposit address:\n${depositAddress}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "USDT BEP 20 deposit", text });
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      setStatus({ type: "success", text: "Deposit details copied to share." });
+    } catch {
+      // User cancelled share — ignore.
+    }
+  };
+
+  const confirmAmount = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus(null);
-    setDepositInfo(null);
     const value = Number(amount);
     if (!value || value < 10) {
-      setStatus({ type: "error", text: "Enter an amount of at least $10." });
+      setStatus({ type: "error", text: "Enter an amount of at least 10 USDT." });
       return;
     }
     setLoading(true);
@@ -62,33 +104,26 @@ export function DepositsWorkspace() {
       const res = await fetch("/api/payments/crypto", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: value, asset }),
+        body: JSON.stringify({ amount: value, asset: "USDT" }),
       });
       const data = (await res.json()) as {
         reference?: string;
-        depositAddress?: string;
-        asset?: string;
         amount?: number;
         error?: string;
         message?: string;
       };
       if (!res.ok) {
-        setStatus({ type: "error", text: data.error ?? "Could not create crypto deposit." });
+        setStatus({ type: "error", text: data.error ?? "Could not create deposit request." });
         return;
       }
-      if (data.reference && data.depositAddress && data.asset && data.amount) {
-        setDepositInfo({
-          reference: data.reference,
-          depositAddress: data.depositAddress,
-          asset: data.asset,
-          amount: data.amount,
-        });
-        setStatus({
-          type: "success",
-          text: data.message ?? "Crypto deposit initiated. Send funds to the address below.",
-        });
-        setAmount("");
-      }
+      setReference(data.reference ?? null);
+      setConfirmedAmount(data.amount ?? value);
+      setShowAmount(false);
+      setAmount("");
+      setStatus({
+        type: "success",
+        text: data.message ?? "Deposit request created. Send USDT BEP 20 to the address above.",
+      });
     } catch {
       setStatus({ type: "error", text: "Something went wrong. Please try again." });
     } finally {
@@ -100,60 +135,119 @@ export function DepositsWorkspace() {
     <>
       <WorkspaceHeader
         title="Deposits"
-        description="Fund your wallet with cryptocurrency. Deposits appear in your balance after on-chain confirmation."
+        description="Fund your wallet with USDT on the BEP 20 network. Deposits appear after confirmation."
       />
-      <Card className="max-w-xl space-y-4 p-6">
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1.5 block text-sm font-medium">Amount (USDT)</label>
-            <Input
-              type="number"
-              min="10"
-              step="0.01"
-              placeholder="250.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 flex items-center gap-2 text-sm font-medium">
-              Crypto asset
-              {asset === "USDT" ? <UsdtIcon size={16} /> : null}
-            </label>
-            <select
-              className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm"
-              value={asset}
-              onChange={(e) => setAsset(e.target.value)}
-            >
-              <option value="BTC">Bitcoin (BTC)</option>
-              <option value="USDT">USDT BEP 20</option>
-              <option value="ETH">Ethereum (ETH)</option>
-            </select>
-          </div>
-          {status ? <StatusMessage message={status.text} type={status.type} /> : null}
-          {depositInfo ? (
-            <div className="space-y-2 rounded-xl border border-border bg-background/60 p-4 text-sm">
-              <p>
-                <span className="text-muted">Reference:</span>{" "}
-                <span className="font-mono font-medium text-foreground">{depositInfo.reference}</span>
+
+      <div className="mx-auto w-full max-w-md space-y-5">
+        <div className="flex items-center justify-center gap-2.5">
+          <UsdtIcon size={28} />
+          <span className="text-xl font-bold tracking-wide text-foreground">USDT</span>
+          <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium text-muted">
+            BEP20
+          </span>
+        </div>
+
+        <div className="rounded-2xl bg-white p-5 text-center shadow-xl sm:p-6">
+          {loadingAddress ? (
+            <div className="flex h-64 items-center justify-center text-sm text-slate-500">Loading…</div>
+          ) : (
+            <>
+              {qrDataUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={qrDataUrl}
+                  alt="USDT BEP 20 deposit QR code"
+                  className="mx-auto h-56 w-56 sm:h-64 sm:w-64"
+                />
+              ) : (
+                <div className="mx-auto flex h-56 w-56 items-center justify-center rounded-lg bg-slate-100 text-sm text-slate-500 sm:h-64 sm:w-64">
+                  QR unavailable
+                </div>
+              )}
+              <p className="mt-4 break-all px-1 font-mono text-sm font-medium leading-relaxed text-slate-900">
+                {depositAddress || "—"}
               </p>
-              <p className="flex flex-wrap items-center gap-2">
-                <span className="text-muted">Send</span>
-                <AssetLabel asset={depositInfo.asset} />
-                <span className="text-muted">to:</span>
-              </p>
-              <p className="break-all font-mono text-xs text-foreground">{depositInfo.depositAddress}</p>
-              <p className="flex flex-wrap items-center gap-2 text-xs text-muted">
-                Amount: <UsdtAmount amount={depositInfo.amount} size="sm" className="font-medium text-foreground" />
-                Include your reference in the memo if the network supports it.
-              </p>
-            </div>
-          ) : null}
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Processing…" : "Generate deposit details"}
-          </Button>
-        </form>
-      </Card>
+            </>
+          )}
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <button
+            type="button"
+            onClick={copyAddress}
+            disabled={!depositAddress}
+            className="flex flex-col items-center gap-2 rounded-xl border border-border/70 bg-card/80 px-2 py-3 text-foreground transition hover:bg-card disabled:opacity-50"
+          >
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5">
+              <Copy className="h-5 w-5" aria-hidden />
+            </span>
+            <span className="text-xs font-medium">Copy</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowAmount((v) => !v);
+              setStatus(null);
+            }}
+            className="flex flex-col items-center gap-2 rounded-xl border border-border/70 bg-card/80 px-2 py-3 text-foreground transition hover:bg-card"
+          >
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5">
+              <Hash className="h-5 w-5" aria-hidden />
+            </span>
+            <span className="text-xs font-medium">Set Amount</span>
+          </button>
+          <button
+            type="button"
+            onClick={shareAddress}
+            disabled={!depositAddress}
+            className="flex flex-col items-center gap-2 rounded-xl border border-border/70 bg-card/80 px-2 py-3 text-foreground transition hover:bg-card disabled:opacity-50"
+          >
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5">
+              <Share2 className="h-5 w-5" aria-hidden />
+            </span>
+            <span className="text-xs font-medium">Share</span>
+          </button>
+        </div>
+
+        {showAmount ? (
+          <Card className="space-y-3 p-5">
+            <p className="text-sm font-medium">Set deposit amount (USDT)</p>
+            <form onSubmit={confirmAmount} className="space-y-3">
+              <Input
+                type="number"
+                min="10"
+                step="0.01"
+                placeholder="250.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                autoFocus
+              />
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Creating…" : "Confirm amount"}
+              </Button>
+            </form>
+          </Card>
+        ) : null}
+
+        {confirmedAmount && reference ? (
+          <Card className="space-y-2 border-green-500/30 bg-green-500/5 p-4 text-sm">
+            <p className="font-medium text-foreground">Deposit request ready</p>
+            <p className="flex flex-wrap items-center gap-2 text-muted">
+              Send exactly <UsdtAmount amount={confirmedAmount} size="sm" className="text-foreground" /> on BEP 20.
+            </p>
+            <p>
+              <span className="text-muted">Reference:</span>{" "}
+              <span className="font-mono font-medium text-foreground">{reference}</span>
+            </p>
+          </Card>
+        ) : null}
+
+        {status ? <StatusMessage message={status.text} type={status.type} /> : null}
+
+        <p className="text-center text-xs text-muted">
+          Only send USDT on the BEP 20 network. Sending any other asset or network may result in lost funds.
+        </p>
+      </div>
     </>
   );
 }

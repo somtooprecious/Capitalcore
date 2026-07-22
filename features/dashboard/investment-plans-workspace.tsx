@@ -7,7 +7,7 @@ import { Check, Sparkles, TrendingUp, CalendarClock, Wallet, ArrowUpRight } from
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatUsd, formatDate } from "@/lib/format";
-import { UsdtIcon, UsdtLabel, UsdtAmount } from "@/components/usdt-amount";
+import { UsdtLabel, UsdtAmount } from "@/components/usdt-amount";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -50,7 +50,6 @@ export function InvestmentPlansWorkspace() {
   const [loading, setLoading] = useState(true);
   const [subscribingId, setSubscribingId] = useState<string | null>(null);
   const [payingId, setPayingId] = useState<string | null>(null);
-  const [asset, setAsset] = useState<"BTC" | "USDT" | "ETH">("USDT");
   const [paymentInfo, setPaymentInfo] = useState<{
     reference: string;
     depositAddress: string;
@@ -115,7 +114,7 @@ export function InvestmentPlansWorkspace() {
       const res = await fetch("/api/payments/crypto", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId: plan.id, asset }),
+        body: JSON.stringify({ planId: plan.id, asset: "USDT" }),
       });
       const json = (await res.json()) as {
         error?: string;
@@ -224,19 +223,9 @@ export function InvestmentPlansWorkspace() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <label className="text-sm text-muted">
-                Pay upgrade with:
-                <select
-                  value={asset}
-                  onChange={(e) => setAsset(e.target.value as "BTC" | "USDT" | "ETH")}
-                  className="ml-2 rounded-lg border border-border bg-card px-2 py-1 text-sm text-foreground"
-                >
-                  <option value="USDT">USDT BEP 20</option>
-                  <option value="BTC">BTC</option>
-                  <option value="ETH">ETH</option>
-                </select>
-                {asset === "USDT" ? <UsdtIcon size={16} className="ml-1 inline-block align-middle" /> : null}
-              </label>
+              <span className="inline-flex items-center gap-1.5 text-sm text-muted">
+                Pay with <UsdtLabel suffix="BEP 20" size={16} className="font-medium text-foreground" />
+              </span>
               <Link href="/daily-tasks">
                 <Button variant="accent">Complete today&apos;s task</Button>
               </Link>
@@ -250,19 +239,9 @@ export function InvestmentPlansWorkspace() {
             <UsdtAmount amount={data.balance} size="sm" className="inline-flex text-foreground" />
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            <label className="text-sm text-muted">
-              Pay with:
-              <select
-                value={asset}
-                onChange={(e) => setAsset(e.target.value as "BTC" | "USDT" | "ETH")}
-                className="ml-2 rounded-lg border border-border bg-card px-2 py-1 text-sm text-foreground"
-              >
-                <option value="USDT">USDT BEP 20</option>
-                <option value="BTC">BTC</option>
-                <option value="ETH">ETH</option>
-              </select>
-              {asset === "USDT" ? <UsdtIcon size={16} className="ml-1 inline-block align-middle" /> : null}
-            </label>
+            <span className="inline-flex items-center gap-1.5 text-sm text-muted">
+              Pay with <UsdtLabel suffix="BEP 20" size={16} className="font-medium text-foreground" />
+            </span>
             <Link href="/deposits" className="text-sm font-medium text-primary hover:underline">
               Need wallet funds? Make a deposit →
             </Link>
@@ -282,13 +261,9 @@ export function InvestmentPlansWorkspace() {
             <span className="text-muted">Reference:</span>{" "}
             <span className="font-mono text-foreground">{paymentInfo.reference}</span>
           </p>
-          <p>
+          <p className="flex flex-wrap items-center gap-2">
             <span className="text-muted">Asset:</span>{" "}
-            {paymentInfo.asset === "USDT" ? (
-              <UsdtLabel suffix="BEP 20" size={16} className="font-semibold text-foreground" />
-            ) : (
-              <span className="font-semibold text-foreground">{paymentInfo.asset}</span>
-            )}
+            <UsdtLabel suffix="BEP 20" size={16} className="font-semibold text-foreground" />
           </p>
           <p className="flex flex-wrap items-center gap-2">
             <span className="text-muted">Amount to send:</span>{" "}
@@ -389,7 +364,7 @@ export function InvestmentPlansWorkspace() {
                     >
                       {payingId === plan.id
                         ? "Preparing payment…"
-                        : `Deposit ${formatUsd(plan.upgradeCost)} with ${asset}`}
+                        : `Deposit ${formatUsd(plan.upgradeCost)} with USDT`}
                     </Button>
                     {!plan.upgradeAffordable ? (
                       <p className="text-center text-xs text-muted">
@@ -417,7 +392,7 @@ export function InvestmentPlansWorkspace() {
                       disabled={payingId === plan.id}
                       onClick={() => payWithCrypto(plan)}
                     >
-                      {payingId === plan.id ? "Preparing payment…" : `Pay with ${asset}`}
+                      {payingId === plan.id ? "Preparing payment…" : "Pay with USDT"}
                     </Button>
                   </div>
                 ) : (
@@ -428,7 +403,7 @@ export function InvestmentPlansWorkspace() {
                       disabled={payingId === plan.id}
                       onClick={() => payWithCrypto(plan)}
                     >
-                      {payingId === plan.id ? "Preparing payment…" : `Pay with ${asset}`}
+                      {payingId === plan.id ? "Preparing payment…" : "Pay with USDT"}
                     </Button>
                     <Link href="/deposits" className="block">
                       <Button variant="outline" className="w-full">

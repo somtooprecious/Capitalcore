@@ -3,7 +3,7 @@ export type PaymentMethod = "crypto";
 export async function initializePayment({
   method,
   amount,
-  asset = "BTC",
+  asset = "USDT",
 }: {
   method: PaymentMethod;
   amount: number;
@@ -13,7 +13,7 @@ export async function initializePayment({
     const res = await fetch("/api/payments/crypto", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount, asset }),
+      body: JSON.stringify({ amount, asset: "USDT" }),
     });
     return res.json();
   }
