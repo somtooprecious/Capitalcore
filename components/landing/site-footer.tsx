@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
+import { TelegramCommunityLink } from "@/components/telegram-community-link";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/hooks/use-translations";
 
@@ -16,9 +17,12 @@ export function SiteFooter() {
         <div className="lg:col-span-2">
           <p className="text-lg font-bold text-foreground">CapitalCore AI</p>
           <p className="mt-2 max-w-sm text-sm text-muted">{f.tagline}</p>
-          <Link href="/signup" className={cn(buttonVariants({ variant: "accent" }), "mt-4 inline-flex")}>
-            {f.openAccount}
-          </Link>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <Link href="/signup" className={cn(buttonVariants({ variant: "accent" }), "inline-flex")}>
+              {f.openAccount}
+            </Link>
+            <TelegramCommunityLink />
+          </div>
         </div>
         <Card className="border-border/60 bg-card/40 p-4">
           <p className="mb-3 font-semibold">{f.platform}</p>
@@ -47,6 +51,9 @@ export function SiteFooter() {
             <li><Link href="/blog" className="hover:text-foreground">{f.blog}</Link></li>
             <li><Link href="/contact" className="hover:text-foreground">{f.contact}</Link></li>
             <li><Link href="/support-center" className="hover:text-foreground">{f.supportCenter}</Link></li>
+            <li>
+              <TelegramCommunityLink variant="inline" label="Telegram community" />
+            </li>
           </ul>
         </Card>
       </div>

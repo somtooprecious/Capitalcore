@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { FaqAccordion } from "@/components/landing/faq-accordion";
+import { TelegramCommunityLink } from "@/components/telegram-community-link";
 import { useTranslations } from "@/hooks/use-translations";
 import { cn } from "@/lib/utils";
 
@@ -108,6 +109,12 @@ export function ContactPageContent() {
           </Card>
         ))}
       </div>
+      <TelegramCommunityLink
+        variant="card"
+        className="max-w-xl"
+        label="Join our Telegram community"
+        hint="Get updates, announcements, and community support"
+      />
       <Link href="/support-center" className={cn(buttonVariants({ variant: "outline" }))}>
         {messages.footer.supportCenter} →
       </Link>
