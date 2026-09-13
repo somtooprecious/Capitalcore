@@ -50,16 +50,6 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
       "Advanced portfolio insights",
     ],
   },
-  {
-    name: "Premium",
-    amount: 500,
-    tagline: "Maximum daily earnings for serious investors.",
-    features: [
-      "10x the daily earnings of Starter",
-      "Dedicated account manager",
-      "Highest daily payout on the platform",
-    ],
-  },
 ];
 
 /** Daily earning (in USD) for a given deposited amount. */
@@ -73,7 +63,7 @@ export function projectedTotalFor(amount: number): number {
 }
 
 /**
- * Make sure the four canonical plans exist and any legacy plans are deactivated,
+ * Make sure the canonical plans exist and any legacy plans are deactivated,
  * so users always see exactly the intended set.
  */
 export async function ensureInvestmentPlans() {

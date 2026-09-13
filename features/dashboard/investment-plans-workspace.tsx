@@ -183,7 +183,7 @@ export function InvestmentPlansWorkspace() {
             {
               icon: TrendingUp,
               step: "2. Choose a plan",
-              body: "Pick $50, $100, $200, or $500. Bigger deposits earn more each day.",
+              body: "Pick $50, $100, or $200. Bigger deposits earn more each day.",
             },
             {
               icon: ArrowUpRight,

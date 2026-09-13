@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { getSiteUrl } from "@/lib/site-url";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Investment Plans — $50, $100, $200, $500",
+  title: "Investment Plans — $50, $100, $200",
   description: `Choose a CapitalCore AI investment plan and earn ${DAILY_ROI_PERCENT}% of your deposit daily for ${PLAN_DURATION_DAYS} days by completing daily tasks. Crypto deposits supported (BTC, USDT, ETH).`,
   path: "/investment-plans",
   index: true,
@@ -78,7 +78,7 @@ export default function PublicInvestmentPlansPage() {
           <ol className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               "Fund your wallet with BTC, USDT, or ETH.",
-              "Choose a $50, $100, $200, or $500 plan.",
+              "Choose a $50, $100, or $200 plan.",
               `Complete your daily task to earn ${DAILY_ROI_PERCENT}% of your deposit.`,
               `Keep earning for ${PLAN_DURATION_DAYS} days while your plan is active.`,
             ].map((step, i) => (
