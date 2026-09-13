@@ -13,6 +13,7 @@ import { useTranslations } from "@/hooks/use-translations";
 import { useWalletBalance } from "@/hooks/use-wallet-balance";
 import { UsdtIcon, UsdtAmount, formatUsdt } from "@/components/usdt-amount";
 import { isOwner } from "@/lib/roles";
+import { SiteLogo } from "@/components/site-logo";
 import { cn } from "@/lib/utils";
 
 const navHrefs = [
@@ -165,9 +166,7 @@ export function SiteHeader() {
       </div>
 
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
-        <Link href="/" className="text-xl font-bold text-foreground">
-          CapitalCore <span className="text-amber-400">AI</span>
-        </Link>
+        <SiteLogo size={44} priority />
 
         <div className="hidden items-center gap-6 md:flex">
           {navHrefs.map(({ key, href }) => (

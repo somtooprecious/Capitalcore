@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SiteLogo } from "@/components/site-logo";
 import { usePathname } from "next/navigation";
 
 const STORAGE_KEY = "capitalcore-preloader-done";
@@ -129,11 +130,9 @@ export function SitePreloader() {
       aria-busy={!leaving}
       role="status"
     >
-      <div className="mb-8 text-center">
-        <p className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-          CapitalCore <span className="text-amber-400">AI</span>
-        </p>
-        <p className="mt-2 text-sm text-slate-400">Preparing your experience…</p>
+      <div className="mb-8 flex flex-col items-center text-center">
+        <SiteLogo size={56} href={null} priority />
+        <p className="mt-4 text-sm text-slate-400">Preparing your experience…</p>
       </div>
 
       <div className="w-full max-w-xs">

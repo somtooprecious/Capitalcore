@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteLogo } from "@/components/site-logo";
 import { ChartSpline, Landmark, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -56,12 +57,9 @@ export function AuthHeroPanel({
       </div>
 
       <div className="relative z-10 flex flex-1 flex-col justify-center px-10 py-12 lg:px-14">
-        <Link
-          href="/"
-          className="mb-10 text-xl font-bold tracking-tight text-slate-50 transition-opacity hover:opacity-90"
-        >
-          CapitalCore
-        </Link>
+        <div className="mb-10">
+          <SiteLogo size={48} />
+        </div>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#93c5fd]">{eyebrow}</p>
         <h2 className="mt-4 max-w-md text-balance text-3xl font-bold tracking-tight text-slate-50 lg:text-4xl">{title}</h2>
         <p className="mt-4 max-w-lg text-base leading-relaxed text-slate-400">{body}</p>

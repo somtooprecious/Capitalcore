@@ -8,7 +8,7 @@ export function SiteJsonLd() {
     "@type": "Organization",
     name: "CapitalCore AI",
     url: siteUrl,
-    logo: `${siteUrl}/images/services/cryptocurrency.svg`,
+    logo: `${siteUrl}/images/logo.png`,
     description:
       "Modern AI trading platform for crypto, forex, stocks, and commodities with investment plans, daily tasks, and secure crypto deposits.",
     sameAs: [],

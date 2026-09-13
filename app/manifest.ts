@@ -15,9 +15,9 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#060b1b",
     icons: [
       {
-        src: "/images/services/cryptocurrency.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: "/images/logo.png",
+        sizes: "512x512",
+        type: "image/png",
         purpose: "any",
       },
     ],

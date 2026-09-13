@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteLogo } from "@/components/site-logo";
 import { AuthHeroPanel } from "@/features/auth/auth-hero-panel";
 import { ClerkPasswordEyeEnhancer } from "@/components/auth/clerk-password-eye-enhancer";
 import { cn } from "@/lib/utils";
@@ -29,12 +30,7 @@ export function AuthPageShell({
 
       <section className="flex min-h-screen flex-col bg-[#060b1b] md:min-h-0 md:justify-center">
         <header className="border-b border-white/10 px-6 py-5 md:hidden">
-          <Link
-            href="/"
-            className="text-lg font-bold tracking-tight text-slate-50 transition-opacity hover:opacity-90"
-          >
-            CapitalCore
-          </Link>
+          <SiteLogo size={40} />
           <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-50">{title}</h1>
           <p className="mt-2 text-sm leading-relaxed text-slate-400">{subtitle}</p>
         </header>

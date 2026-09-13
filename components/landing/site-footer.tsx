@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { TelegramCommunityLink } from "@/components/telegram-community-link";
+import { SiteLogo } from "@/components/site-logo";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/hooks/use-translations";
 
@@ -15,7 +16,7 @@ export function SiteFooter() {
     <footer id="contact" className="scroll-mt-24 border-t border-border bg-[#050810] py-12">
       <div className="mx-auto grid max-w-7xl gap-6 px-4 md:grid-cols-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
-          <p className="text-lg font-bold text-foreground">CapitalCore AI</p>
+          <SiteLogo size={40} className="mb-1" />
           <p className="mt-2 max-w-sm text-sm text-muted">{f.tagline}</p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Link href="/signup" className={cn(buttonVariants({ variant: "accent" }), "inline-flex")}>

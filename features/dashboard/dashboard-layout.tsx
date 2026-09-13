@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SiteLogo } from "@/components/site-logo";
 import { cn } from "@/lib/utils";
 
 export const dashboardMenu = [
@@ -33,9 +34,7 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
   return (
     <main className="grid min-h-screen md:grid-cols-[260px_1fr]">
       <aside className="flex flex-col border-r border-border p-4">
-        <Link href="/" className="mb-1 text-lg font-bold transition-opacity hover:opacity-80">
-          CapitalCore
-        </Link>
+        <SiteLogo size={40} className="mb-1" />
         <p className="mb-4 truncate text-xs text-muted">{user.email}</p>
         <nav className="flex-1 space-y-1">
           {dashboardMenu.map((item) => {
