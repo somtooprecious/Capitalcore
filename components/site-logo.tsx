@@ -13,7 +13,7 @@ type SiteLogoProps = {
   /** Set to null to render without a link (e.g. preloader). Default: home page. */
   href?: string | null;
   priority?: boolean;
-  /** Show "CapitalCore AI" beside the logo. Default: true. */
+  /** Show "Capitalcore.AI" beside the logo. Default: true. */
   showName?: boolean;
 };
 
@@ -38,7 +38,7 @@ export function SiteLogo({
       />
       {showName ? (
         <span className={cn("whitespace-nowrap font-bold leading-none text-foreground", nameClassName)}>
-          CapitalCore <span className="text-amber-400">AI</span>
+          Capitalcore<span className="text-amber-400">.AI</span>
         </span>
       ) : null}
     </>
@@ -51,7 +51,7 @@ export function SiteLogo({
       <Link
         href={href}
         className={cn(wrapperClass, "transition-opacity hover:opacity-90")}
-        aria-label="CapitalCore AI — go to homepage"
+        aria-label="Capitalcore.AI — go to homepage"
       >
         {brand}
       </Link>
