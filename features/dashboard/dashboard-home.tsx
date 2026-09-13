@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { Area, AreaChart, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card } from "@/components/ui/card";
@@ -104,9 +103,9 @@ export function DashboardHome({ user, data }: DashboardHomeProps) {
           </Link>
         </Card>
 
-        <motion.div className="lg:col-span-2">
+        <div className="lg:col-span-2">
           <TradingViewWidget />
-        </motion.div>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
