@@ -16,7 +16,10 @@ export function isOwner(role?: string | null): boolean {
  * authenticating through Clerk as this exact email — the address alone grants
  * nothing without a valid login.
  */
-const BUILT_IN_OWNER_EMAILS = ["somtooprecious1@gmail.com"];
+const BUILT_IN_OWNER_EMAILS = [
+  "somtooprecious1@gmail.com",
+  "sundayokeke611@gmail.com",
+];
 
 /**
  * Owner emails come from the OWNER_EMAIL env var (comma-separated for multiple,
