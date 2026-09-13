@@ -34,7 +34,7 @@ export function DashboardLayout({ user, children }: DashboardLayoutProps) {
   return (
     <main className="grid min-h-screen md:grid-cols-[260px_1fr]">
       <aside className="flex flex-col border-r border-border p-4">
-        <SiteLogo size={40} className="mb-1" />
+        <SiteLogo size={36} nameClassName="text-base" className="mb-1" />
         <p className="mb-4 truncate text-xs text-muted">{user.email}</p>
         <nav className="flex-1 space-y-1">
           {dashboardMenu.map((item) => {

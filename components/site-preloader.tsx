@@ -131,7 +131,7 @@ export function SitePreloader() {
       role="status"
     >
       <div className="mb-8 flex flex-col items-center text-center">
-        <SiteLogo size={56} href={null} priority />
+        <SiteLogo size={56} href={null} priority nameClassName="text-xl sm:text-2xl text-white" />
         <p className="mt-4 text-sm text-slate-400">Preparing your experience…</p>
       </div>
 
