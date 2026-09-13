@@ -1,22 +1,46 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/session";
+import { syncClerkUserToDatabase } from "@/lib/clerk-sync";
 import { getDashboardData } from "@/lib/dashboard-data";
 import { ensureWallet } from "@/lib/wallet";
 import { DashboardLayout } from "@/features/dashboard/dashboard-layout";
 import { DashboardHome } from "@/features/dashboard/dashboard-home";
 
+async function resolveAuthUser() {
+  let user = await getAuthUser();
+  if (user) return user;
+
+  const { userId } = await auth();
+  if (!userId) return null;
+
+  const clerkUser = await currentUser();
+  if (!clerkUser) return null;
+
+  try {
+    user = await syncClerkUserToDatabase({
+      id: clerkUser.id,
+      emailAddresses: clerkUser.emailAddresses.map((e) => ({ emailAddress: e.emailAddress })),
+      firstName: clerkUser.firstName,
+      lastName: clerkUser.lastName,
+      unsafeMetadata: clerkUser.unsafeMetadata as Record<string, unknown>,
+    });
+  } catch (error) {
+    console.error("[dashboard] Clerk sync retry failed:", error);
+  }
+
+  return user ?? (await getAuthUser());
+}
+
 export default async function DashboardPage() {
   const { userId } = await auth();
-
-  const user = await getAuthUser();
-  if (!user) {
-    if (userId) {
-      throw new Error(
-        "Your account is signed in but could not be loaded. Please refresh the page or contact support."
-      );
-    }
+  if (!userId) {
     redirect("/signin");
+  }
+
+  const user = await resolveAuthUser();
+  if (!user) {
+    redirect("/signin?reason=account-sync");
   }
 
   await ensureWallet(user.id);

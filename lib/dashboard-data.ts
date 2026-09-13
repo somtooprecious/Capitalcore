@@ -81,7 +81,26 @@ export async function getDashboardData(userId: string): Promise<DashboardData> {
       _sum: { amount: true },
     }),
     prisma.notification.count({ where: { userId, read: false } }),
-    getDailyTaskStatus(userId),
+    getDailyTaskStatus(userId).catch((error) => {
+      console.error("[dashboard] Daily task status failed:", error);
+      return {
+        task: {
+          id: "fallback",
+          title: "Daily platform check-in",
+          description: "Complete today's task to earn your plan reward.",
+          rewardType: "FIXED",
+          rewardValue: 0,
+        },
+        config: { rewardType: "FIXED" as const, rewardValue: 0 },
+        activePlan: null,
+        dailyRoiPercent: 3.5,
+        todayReward: null,
+        completedToday: false,
+        streak: 0,
+        nextReset: new Date().toISOString(),
+        history: [],
+      };
+    }),
   ]);
 
   const balance = toNumber(wallet?.balance);

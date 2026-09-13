@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Area, AreaChart, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -23,7 +24,12 @@ type DashboardHomeProps = {
 };
 
 export function DashboardHome({ user, data }: DashboardHomeProps) {
+  const [chartsReady, setChartsReady] = useState(false);
   const displayName = user.name?.trim() || user.email?.split("@")[0] || "Trader";
+
+  useEffect(() => {
+    setChartsReady(true);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -85,7 +91,7 @@ export function DashboardHome({ user, data }: DashboardHomeProps) {
         <Card className="space-y-4 p-6 lg:col-span-1">
           <p className="text-xs uppercase tracking-wide text-muted">Daily task</p>
           <h2 className="text-lg font-semibold">{data.dailyTask.task.title}</h2>
-          <p className="text-sm text-muted line-clamp-2">{data.dailyTask.task.description}</p>
+          <p className="text-sm text-muted line-clamp-2">{data.dailyTask.task.description ?? "Complete today's task to earn your reward."}</p>
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted">Streak</span>
             <span className="font-bold text-amber-400">{data.dailyTask.streak} day(s)</span>
@@ -107,30 +113,38 @@ export function DashboardHome({ user, data }: DashboardHomeProps) {
         <Card className="flex h-[320px] flex-col p-4 lg:col-span-1">
           <p className="mb-2 font-semibold">Portfolio breakdown</p>
           <div className="min-h-0 flex-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={data.portfolioBreakdown} dataKey="value" nameKey="name" outerRadius={90} innerRadius={50}>
-                  {data.portfolioBreakdown.map((_, idx) => (
-                    <Cell key={idx} fill={colors[idx % colors.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${value}%`} />
-              </PieChart>
-            </ResponsiveContainer>
+            {chartsReady ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={data.portfolioBreakdown} dataKey="value" nameKey="name" outerRadius={90} innerRadius={50}>
+                    {data.portfolioBreakdown.map((_, idx) => (
+                      <Cell key={idx} fill={colors[idx % colors.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `${value}%`} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-muted">Loading chart…</div>
+            )}
           </div>
         </Card>
 
         <Card className="flex h-[320px] flex-col p-4 lg:col-span-2">
           <p className="mb-2 font-semibold">Earnings growth</p>
           <div className="min-h-0 flex-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data.earningsChart.length ? data.earningsChart : [{ month: "—", amount: 0 }]}>
-                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(v) => `${formatUsdt(Number(v))} USDT`} />
-                <Area type="monotone" dataKey="amount" stroke="#f5b342" fill="#f5b34233" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {chartsReady ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data.earningsChart.length ? data.earningsChart : [{ month: "—", amount: 0 }]}>
+                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(v) => `${formatUsdt(Number(v))} USDT`} />
+                  <Area type="monotone" dataKey="amount" stroke="#f5b342" fill="#f5b34233" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-muted">Loading chart…</div>
+            )}
           </div>
         </Card>
       </div>
