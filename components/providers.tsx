@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuth } from "@clerk/nextjs";
 import { Toaster } from "sonner";
-import { LiveChatWidget } from "@/components/live-chat-widget";
+import { SmartsuppChat } from "@/components/smartsupp-chat";
 import { SitePreloader } from "@/components/site-preloader";
 import type { Currency, Locale } from "@/lib/i18n";
 
@@ -122,7 +122,7 @@ function AppProviders({ children }: { children: React.ReactNode }) {
           <LocalePreferencesSync setLocaleState={setLocaleState} setCurrencyState={setCurrencyState} />
           <SitePreloader />
           {children}
-          <LiveChatWidget />
+          <SmartsuppChat />
           <Toaster richColors position="top-right" theme={theme} />
         </LocaleContext.Provider>
       </ThemeContext.Provider>
