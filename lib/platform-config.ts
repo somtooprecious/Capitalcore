@@ -22,7 +22,7 @@ export type PlatformConfig = {
 const DEFAULTS: PlatformConfig = {
   depositMin: 10,
   depositMax: 100000,
-  withdrawalMin: 20,
+  withdrawalMin: 10,
   withdrawalMax: 50000,
   withdrawalCooldownHours: 24,
   dailyTaskRewardType: "FIXED",
@@ -59,6 +59,13 @@ export async function getPlatformConfig(): Promise<PlatformConfig> {
       (config as Record<string, unknown>)[key] = toConfigValue(key, map.get(key));
     }
   }
+
+  // Align legacy production minimum (20) with the current platform default (10).
+  if (config.withdrawalMin === 20 && DEFAULTS.withdrawalMin === 10) {
+    config.withdrawalMin = DEFAULTS.withdrawalMin;
+    await setPlatformConfig({ withdrawalMin: DEFAULTS.withdrawalMin });
+  }
+
   return config;
 }
 

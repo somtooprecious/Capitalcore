@@ -256,6 +256,7 @@ export function WithdrawalsWorkspace() {
   const [amount, setAmount] = useState("");
   const [asset, setAsset] = useState<WithdrawalAssetCode>("USDT");
   const [address, setAddress] = useState("");
+  const [withdrawalMin, setWithdrawalMin] = useState(10);
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<
@@ -276,14 +277,25 @@ export function WithdrawalsWorkspace() {
 
   useEffect(() => {
     void loadHistory();
+    void fetch("/api/platform/config")
+      .then((r) => r.json())
+      .then((data: { withdrawalMin?: number }) => {
+        if (typeof data.withdrawalMin === "number" && data.withdrawalMin > 0) {
+          setWithdrawalMin(data.withdrawalMin);
+        }
+      })
+      .catch(() => undefined);
   }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus(null);
     const value = Number(amount);
-    if (!value || value < 20) {
-      setStatus({ type: "error", text: "Enter a valid withdrawal amount (minimum $20)." });
+    if (!value || value < withdrawalMin) {
+      setStatus({
+        type: "error",
+        text: `Enter a valid withdrawal amount (minimum $${withdrawalMin}).`,
+      });
       return;
     }
     if (!address.trim() || address.trim().length < 8) {
@@ -334,7 +346,7 @@ export function WithdrawalsWorkspace() {
             <label className="mb-1.5 block text-sm font-medium">Amount (USDT)</label>
             <Input
               type="number"
-              min="20"
+              min={withdrawalMin}
               step="0.01"
               placeholder="100.00"
               value={amount}
