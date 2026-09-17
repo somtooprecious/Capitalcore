@@ -9,6 +9,7 @@ import {
   WITHDRAWAL_PERCENT_FEE,
   calculateWithdrawalFees,
   formatWithdrawalDestination,
+  validateWithdrawalWindow,
   type WithdrawalAssetCode,
 } from "@/lib/withdrawal-fees";
 
@@ -31,6 +32,8 @@ function toNumber(value: unknown): number {
 }
 
 export async function createWithdrawalRequest(userId: string, amount: number, destination: string) {
+  validateWithdrawalWindow();
+
   const config = await getPlatformConfig();
   if (amount < config.withdrawalMin || amount > config.withdrawalMax) {
     throw new Error(`Withdrawal must be between $${config.withdrawalMin} and $${config.withdrawalMax}.`);
@@ -39,7 +42,7 @@ export async function createWithdrawalRequest(userId: string, amount: number, de
   const fees = calculateWithdrawalFees(amount);
   if (fees.netPayout <= 0) {
     throw new Error(
-      `Amount is too low after the 10% withdrawal fee. Increase the withdrawal amount.`,
+      `Amount is too low after the ${fees.feeLabel.toLowerCase()}. Increase the withdrawal amount.`,
     );
   }
 

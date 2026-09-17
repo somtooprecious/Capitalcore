@@ -10,9 +10,11 @@ import { ClerkSecurityPanel } from "@/components/auth/clerk-security-panel";
 import {
   WITHDRAWAL_ASSETS,
   calculateWithdrawalFees,
+  getWithdrawalScheduleContext,
   type WithdrawalAssetCode,
 } from "@/lib/withdrawal-fees";
 import { UsdtIcon, UsdtAmount } from "@/components/usdt-amount";
+import { WithdrawalInstructionsDialog } from "@/components/withdrawal-instructions-dialog";
 import { cn } from "@/lib/utils";
 
 function WorkspaceHeader({ title, description }: { title: string; description: string }) {
@@ -267,7 +269,16 @@ export function WithdrawalsWorkspace() {
   const feePreview =
     amountValue > 0
       ? calculateWithdrawalFees(amountValue)
-      : { percentFee: 0, flatFee: 0, totalFee: 0, netPayout: 0 };
+      : {
+          percentFee: 0,
+          flatFee: 0,
+          totalFee: 0,
+          netPayout: 0,
+          feeLabel: "",
+          schedule: getWithdrawalScheduleContext(),
+        };
+  const withdrawalsOpen =
+    !feePreview.schedule.isWeekend && feePreview.schedule.isWithinHours;
 
   const loadHistory = async () => {
     const res = await fetch("/api/withdrawals");
@@ -300,6 +311,15 @@ export function WithdrawalsWorkspace() {
     }
     if (!address.trim() || address.trim().length < 8) {
       setStatus({ type: "error", text: "Enter a valid wallet address for the selected asset." });
+      return;
+    }
+    if (!withdrawalsOpen) {
+      setStatus({
+        type: "error",
+        text: feePreview.schedule.isWeekend
+          ? "Withdrawals are not available on Saturdays and Sundays."
+          : "Withdrawals are only available between 09:00 and 17:00.",
+      });
       return;
     }
     setLoading(true);
@@ -336,10 +356,23 @@ export function WithdrawalsWorkspace() {
 
   return (
     <>
-      <WorkspaceHeader
-        title="Withdrawals"
-        description="Request a payout to your crypto wallet. A 10% withdrawal fee applies to every request. Most requests are reviewed within 24 hours."
-      />
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 flex-1 space-y-1">
+          <h1 className="text-3xl font-bold">Withdrawals</h1>
+          <p className="max-w-2xl text-muted">
+            Request a payout to your crypto wallet. Fees and hours depend on the day — see Kind tips for full
+            withdrawal instructions.
+          </p>
+        </div>
+        <WithdrawalInstructionsDialog />
+      </div>
+      {!withdrawalsOpen ? (
+        <Card className="mb-4 max-w-xl border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-200">
+          {feePreview.schedule.isWeekend
+            ? "Withdrawals are closed on weekends. Please return Monday–Friday between 09:00 and 17:00."
+            : "Withdrawals are currently outside operating hours (09:00–17:00). Please try again during the withdrawal window."}
+        </Card>
+      ) : null}
       <Card className="max-w-xl space-y-4 p-6">
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
@@ -387,8 +420,8 @@ export function WithdrawalsWorkspace() {
           {amountValue > 0 ? (
             <div className="space-y-1.5 rounded-xl border border-border bg-background/60 px-4 py-3 text-sm">
               <div className="flex items-center justify-between gap-3 text-muted">
-                <span>10% withdrawal fee</span>
-                <UsdtAmount amount={feePreview.percentFee} sign="−" size="sm" className="font-medium text-muted" />
+                <span>{feePreview.feeLabel || "Withdrawal fee"}</span>
+                <UsdtAmount amount={feePreview.totalFee} sign="−" size="sm" className="font-medium text-muted" />
               </div>
               <div className="flex items-center justify-between gap-3 border-t border-border pt-2 font-medium text-foreground">
                 <span>You receive</span>
@@ -401,7 +434,7 @@ export function WithdrawalsWorkspace() {
             </div>
           ) : null}
           {status ? <StatusMessage message={status.text} type={status.type} /> : null}
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || !withdrawalsOpen}>
             {loading ? "Submitting…" : "Submit withdrawal"}
           </Button>
         </form>
