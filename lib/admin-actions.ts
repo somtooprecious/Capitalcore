@@ -61,9 +61,6 @@ export async function approvePayment(paymentId: string) {
       // Ignore auto-activation failures; payment credit still succeeds.
     }
 
-    await grantReferralPlanDepositBonus(payment.userId, paymentAmount).catch((error) => {
-      console.error("[approvePayment] Referral bonus failed:", error);
-    });
   }
 
   if (metadata.purpose === "PLAN_UPGRADE" && metadata.planId) {
@@ -86,6 +83,10 @@ export async function approvePayment(paymentId: string) {
       console.error("[approvePayment] Plan upgrade failed:", error);
     }
   }
+
+  await grantReferralPlanDepositBonus(payment.userId, paymentAmount).catch((error) => {
+    console.error("[approvePayment] Referral bonus failed:", error);
+  });
 }
 
 export async function rejectPayment(paymentId: string) {

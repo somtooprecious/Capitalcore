@@ -42,17 +42,17 @@ export function ReferralsWorkspace() {
         <h1 className="text-3xl font-bold">Referrals</h1>
         <p className="mt-1 text-muted">
           Invite friends with your link. Earn{" "}
-          <span className="font-semibold text-amber-400">{percent}%</span> of their investment plan deposit
-          when they sign up with your referral link and deposit for a plan.
+          <span className="font-semibold text-amber-400">{percent}%</span> of their deposit automatically
+          when they sign up with your referral link and fund their account or activate a plan.
         </p>
       </div>
 
       <Card className="space-y-3 border-amber-500/30 bg-amber-500/5 p-6">
         <p className="text-xs uppercase tracking-wide text-amber-400">Offer</p>
-        <p className="text-2xl font-bold tabular-nums text-foreground">{percent}% of plan deposit</p>
+        <p className="text-2xl font-bold tabular-nums text-foreground">{percent}% of their deposit</p>
         <p className="text-sm text-muted">
-          Example: if they deposit $100 for a plan, you receive ${(100 * (percent / 100)).toFixed(2)}. Credited once
-          when their plan deposit is approved.
+          Example: if they deposit $100, you receive ${(100 * (percent / 100)).toFixed(2)} instantly — no admin
+          approval needed. Credited once per referral.
         </p>
       </Card>
 

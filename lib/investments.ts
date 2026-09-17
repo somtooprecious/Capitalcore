@@ -8,6 +8,7 @@ import {
   ensureInvestmentPlans,
   projectedTotalFor,
 } from "@/lib/investment-plans";
+import { grantReferralPlanDepositBonus } from "@/lib/referrals";
 
 function toNumber(value: unknown): number {
   if (typeof value === "number") return value;
@@ -204,6 +205,10 @@ export async function subscribeToPlan(userId: string, planId: string) {
       ).toFixed(2)} each day.`,
       type: "PLAN",
     },
+  });
+
+  await grantReferralPlanDepositBonus(userId, targetAmount).catch((error) => {
+    console.error("[subscribeToPlan] Referral bonus failed:", error);
   });
 
   return {

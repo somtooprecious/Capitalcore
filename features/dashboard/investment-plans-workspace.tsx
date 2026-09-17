@@ -142,7 +142,7 @@ export function InvestmentPlansWorkspace() {
         });
         toast.success(
           json.message ??
-            "Crypto payment details created. Send funds and wait for admin confirmation.",
+            "Plan credited instantly. Send USDT to the address shown. Referral bonuses are applied automatically.",
         );
       }
     } finally {

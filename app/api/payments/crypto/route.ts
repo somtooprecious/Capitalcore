@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/api-auth";
+import { approvePayment } from "@/lib/admin-actions";
 import { prisma } from "@/lib/prisma";
 import { getPlanPaymentAmount } from "@/lib/investments";
 
@@ -72,8 +73,8 @@ export async function POST(req: Request) {
   const reference = `CRYPTO-${randomBytes(6).toString("hex").toUpperCase()}`;
   const depositAddress = USDT_ADDRESS;
 
-  await prisma.$transaction([
-    prisma.payment.create({
+  const payment = await prisma.$transaction(async (tx) => {
+    const created = await tx.payment.create({
       data: {
         userId: user.id,
         amount,
@@ -92,8 +93,9 @@ export async function POST(req: Request) {
           targetPlanAmount: plan?.minDeposit,
         },
       },
-    }),
-    prisma.transaction.create({
+    });
+
+    await tx.transaction.create({
       data: {
         userId: user.id,
         type: "DEPOSIT",
@@ -106,8 +108,23 @@ export async function POST(req: Request) {
             : `Crypto deposit (${ASSET_LABEL}) · ${plan.name}`
           : `Crypto deposit (${ASSET_LABEL})`,
       },
-    }),
-  ]);
+    });
+
+    return created;
+  });
+
+  try {
+    await approvePayment(payment.id);
+  } catch (error) {
+    console.error("[crypto deposit] Instant approval failed:", error);
+    return NextResponse.json({ error: "Could not credit this deposit right now." }, { status: 500 });
+  }
+
+  const instantMessage = plan
+    ? isUpgrade
+      ? `${plan.name} upgrade credited instantly. Send ${amount} USDT (${ASSET_LABEL}) to the address below.`
+      : `${plan.name} activated instantly. Send ${amount} USDT (${ASSET_LABEL}) to the address below. Referral bonuses are credited automatically.`
+    : `$${amount.toFixed(2)} credited to your wallet instantly. Send USDT (${ASSET_LABEL}) to the address below. Referral bonuses are credited automatically.`;
 
   return NextResponse.json({
     reference,
@@ -117,10 +134,7 @@ export async function POST(req: Request) {
     amount,
     planName: plan?.name,
     isUpgrade,
-    message: plan
-      ? isUpgrade
-        ? `Send exactly ${amount} USDT (${ASSET_LABEL}) to upgrade to ${plan.name}.`
-        : `Send exactly ${amount} USDT (${ASSET_LABEL}) to activate ${plan.name}.`
-      : `Send ${amount} USDT on the BEP 20 network to the address below.`,
+    status: "COMPLETED",
+    message: instantMessage,
   });
 }

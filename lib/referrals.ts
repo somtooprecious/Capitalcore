@@ -12,7 +12,7 @@ export function referralBonusForDeposit(depositAmount: number) {
 }
 
 /**
- * Credits the referrer once with 5% of the referred user's plan deposit.
+ * Instantly credits the referrer once with 5% of the referred user's deposit.
  * Safe to call multiple times — skips if this referral was already rewarded.
  */
 export async function grantReferralPlanDepositBonus(referredUserId: string, depositAmount: number) {

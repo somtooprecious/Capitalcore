@@ -137,7 +137,7 @@ export function DepositsWorkspace() {
     <>
       <WorkspaceHeader
         title="Deposits"
-        description="Fund your wallet with USDT on the BEP 20 network. Deposits appear after confirmation."
+        description="Fund your wallet with USDT on the BEP 20 network. Deposits and referral bonuses are credited instantly."
       />
 
       <div className="mx-auto w-full max-w-md space-y-5">
