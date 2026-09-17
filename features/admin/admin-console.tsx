@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
+  Copy,
   CreditCard,
   FileText,
   Layers,
@@ -14,6 +15,7 @@ import {
   Wallet,
   X,
 } from "lucide-react";
+import { parseWithdrawalDestination } from "@/lib/withdrawal-fees";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -558,13 +560,15 @@ export function AdminConsole({ data }: { data: AdminData }) {
         <Card className="overflow-hidden p-0">
           <div className="border-b border-border px-5 py-4">
             <h2 className="font-semibold">Withdrawal requests</h2>
-            <p className="text-sm text-muted">Approve, complete, or reject user withdrawal requests.</p>
+            <p className="text-sm text-muted">
+              Approve, complete, or reject requests. Copy each user&apos;s wallet address below to send their payout.
+            </p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px] text-left text-sm">
+            <table className="w-full min-w-[960px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border bg-card/60">
-                  {["User", "Amount", "Destination", "Status", "Reference", "Actions"].map((col) => (
+                  {["User", "Amount", "Asset", "Wallet address", "Status", "Reference", "Actions"].map((col) => (
                     <th key={col} className="px-5 py-3 font-semibold">
                       {col}
                     </th>
@@ -572,14 +576,33 @@ export function AdminConsole({ data }: { data: AdminData }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {data.withdrawalRequests.map((w) => (
+                {data.withdrawalRequests.map((w) => {
+                  const { asset, address } = parseWithdrawalDestination(w.destination);
+                  return (
                   <tr key={w.id} className="bg-background/40">
                     <td className="px-5 py-3">
                       <p className="font-medium">{w.user}</p>
                       <p className="text-xs text-muted">{w.email}</p>
                     </td>
                     <td className="px-5 py-3 tabular-nums">{formatMoney(w.amount)}</td>
-                    <td className="max-w-[180px] truncate px-5 py-3 text-muted">{w.destination}</td>
+                    <td className="px-5 py-3 text-muted">{asset}</td>
+                    <td className="max-w-[320px] px-5 py-3">
+                      <div className="flex items-start gap-2">
+                        <p className="break-all font-mono text-xs text-foreground">{address}</p>
+                        <button
+                          type="button"
+                          className="shrink-0 rounded-md border border-border p-1.5 text-muted transition-colors hover:bg-card hover:text-foreground"
+                          title="Copy wallet address"
+                          onClick={() => {
+                            void navigator.clipboard.writeText(address).then(() => {
+                              notify("success", "Wallet address copied.");
+                            });
+                          }}
+                        >
+                          <Copy className="size-3.5" />
+                        </button>
+                      </div>
+                    </td>
                     <td className="px-5 py-3">
                       <StatusBadge status={w.status} />
                     </td>
@@ -601,7 +624,8 @@ export function AdminConsole({ data }: { data: AdminData }) {
                       ) : null}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

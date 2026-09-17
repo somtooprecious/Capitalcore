@@ -1,8 +1,6 @@
-/** Percent fee applied Tue–Fri withdrawals (of requested amount). */
+/** Percent fee applied Mon–Fri withdrawals (of requested amount). */
 export const WITHDRAWAL_PERCENT_FEE = 0.1;
-/** Flat fee on Monday withdrawals (USDT). */
-export const WITHDRAWAL_MONDAY_FLAT_FEE_USD = 1;
-/** Legacy flat fee — kept at 0; Monday uses WITHDRAWAL_MONDAY_FLAT_FEE_USD. */
+/** Flat fee — kept at 0; weekday withdrawals use the percent fee only. */
 export const WITHDRAWAL_FLAT_FEE_USD = 0;
 
 /** Withdrawal window timezone (09:00–17:00). */
@@ -12,8 +10,7 @@ export const WITHDRAWAL_OPEN_HOUR = 9;
 export const WITHDRAWAL_CLOSE_HOUR = 17;
 
 export const WITHDRAWAL_INSTRUCTIONS = [
-  "A 1 USDT fee is automatically deducted for each withdrawal made on Mondays.",
-  "A 10% fee is automatically deducted for each withdrawal made Tuesday through Friday.",
+  "A 10% fee is automatically deducted for each withdrawal made from Monday through Friday.",
   "Withdrawals are not supported on Saturdays and Sundays.",
   "Withdrawal hours are 09:00–17:00.",
 ] as const;
@@ -100,21 +97,6 @@ export function validateWithdrawalWindow(date = new Date()) {
 
 export function calculateWithdrawalFees(amount: number, date = new Date()): WithdrawalFeeBreakdown {
   const schedule = getWithdrawalScheduleContext(date);
-
-  if (schedule.isMonday) {
-    const flatFee = WITHDRAWAL_MONDAY_FLAT_FEE_USD;
-    const totalFee = flatFee;
-    const netPayout = Math.round((amount - totalFee) * 100) / 100;
-    return {
-      percentFee: 0,
-      flatFee,
-      totalFee,
-      netPayout,
-      feeLabel: "1 USDT fee (Monday)",
-      schedule,
-    };
-  }
-
   const percentFee = Math.round(amount * WITHDRAWAL_PERCENT_FEE * 100) / 100;
   const flatFee = WITHDRAWAL_FLAT_FEE_USD;
   const totalFee = Math.round((percentFee + flatFee) * 100) / 100;
@@ -124,7 +106,7 @@ export function calculateWithdrawalFees(amount: number, date = new Date()): With
     flatFee,
     totalFee,
     netPayout,
-    feeLabel: "10% withdrawal fee (Tue–Fri)",
+    feeLabel: "10% withdrawal fee (Mon–Fri)",
     schedule,
   };
 }
@@ -133,4 +115,16 @@ export function formatWithdrawalDestination(asset: WithdrawalAssetCode, address:
   const meta = WITHDRAWAL_ASSETS.find((row) => row.code === asset);
   const label = meta?.label ?? asset;
   return `${label} · ${address.trim()}`;
+}
+
+export function parseWithdrawalDestination(destination: string) {
+  const separator = " · ";
+  const index = destination.lastIndexOf(separator);
+  if (index === -1) {
+    return { asset: "Withdrawal", address: destination.trim() };
+  }
+  return {
+    asset: destination.slice(0, index).trim(),
+    address: destination.slice(index + separator.length).trim(),
+  };
 }
