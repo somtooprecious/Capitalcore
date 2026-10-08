@@ -7,6 +7,7 @@ import { Check, Sparkles, TrendingUp, CalendarClock, Wallet, ArrowUpRight } from
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatUsd, formatDate } from "@/lib/format";
+import { DepositProofUpload } from "@/components/deposit-proof-upload";
 import { UsdtLabel, UsdtAmount } from "@/components/usdt-amount";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -51,6 +52,7 @@ export function InvestmentPlansWorkspace() {
   const [subscribingId, setSubscribingId] = useState<string | null>(null);
   const [payingId, setPayingId] = useState<string | null>(null);
   const [paymentInfo, setPaymentInfo] = useState<{
+    paymentId?: string;
     reference: string;
     depositAddress: string;
     asset: string;
@@ -118,6 +120,7 @@ export function InvestmentPlansWorkspace() {
       });
       const json = (await res.json()) as {
         error?: string;
+        paymentId?: string;
         reference?: string;
         depositAddress?: string;
         asset?: string;
@@ -133,6 +136,7 @@ export function InvestmentPlansWorkspace() {
 
       if (json.reference && json.depositAddress && json.asset && json.amount) {
         setPaymentInfo({
+          paymentId: json.paymentId,
           reference: json.reference,
           depositAddress: json.depositAddress,
           asset: json.asset,
@@ -142,7 +146,7 @@ export function InvestmentPlansWorkspace() {
         });
         toast.success(
           json.message ??
-            "Plan credited instantly. Send USDT to the address shown. Referral bonuses are applied automatically.",
+            "Send USDT to the address shown, upload your payment screenshot, and wait for admin approval.",
         );
       }
     } finally {
@@ -279,6 +283,11 @@ export function InvestmentPlansWorkspace() {
           <p className="text-xs text-muted">
             After admin confirms payment, your plan will be {paymentInfo.isUpgrade ? "upgraded" : "activated"}.
           </p>
+          <DepositProofUpload
+            reference={paymentInfo.reference}
+            paymentId={paymentInfo.paymentId}
+            className="mt-3 border-amber-500/20 bg-background/40"
+          />
         </Card>
       ) : null}
 

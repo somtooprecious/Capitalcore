@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getPlatformConfig } from "@/lib/platform-config";
 import { withDbRetry } from "@/lib/db-retry";
+import { getPaymentProofFromMetadata } from "@/lib/payment-proof";
 
 function toNumber(value: unknown): number {
   if (typeof value === "number") return value;
@@ -109,6 +110,7 @@ export async function getAdminData() {
       provider: payment.provider,
       reference: payment.reference,
       status: payment.status,
+      hasProof: Boolean(getPaymentProofFromMetadata(payment.metadata)),
       createdAt: payment.createdAt.toISOString(),
     })),
     recentTransactions: recentTransactions.map((tx) => ({

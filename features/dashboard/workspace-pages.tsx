@@ -14,6 +14,7 @@ import {
   type WithdrawalAssetCode,
 } from "@/lib/withdrawal-fees";
 import { UsdtIcon, UsdtAmount } from "@/components/usdt-amount";
+import { DepositProofUpload } from "@/components/deposit-proof-upload";
 import { WithdrawalInstructionsDialog } from "@/components/withdrawal-instructions-dialog";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ export function DepositsWorkspace() {
   const [amount, setAmount] = useState("");
   const [showAmount, setShowAmount] = useState(false);
   const [reference, setReference] = useState<string | null>(null);
+  const [paymentId, setPaymentId] = useState<string | null>(null);
   const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -109,6 +111,7 @@ export function DepositsWorkspace() {
         body: JSON.stringify({ amount: value, asset: "USDT" }),
       });
       const data = (await res.json()) as {
+        paymentId?: string;
         reference?: string;
         amount?: number;
         error?: string;
@@ -119,6 +122,7 @@ export function DepositsWorkspace() {
         return;
       }
       setReference(data.reference ?? null);
+      setPaymentId(data.paymentId ?? null);
       setConfirmedAmount(data.amount ?? value);
       setShowAmount(false);
       setAmount("");
@@ -137,7 +141,7 @@ export function DepositsWorkspace() {
     <>
       <WorkspaceHeader
         title="Deposits"
-        description="Fund your wallet with USDT on the BEP 20 network. Deposits and referral bonuses are credited instantly."
+        description="Fund your wallet with USDT on the BEP 20 network. Send payment, upload proof, then wait for admin approval."
       />
 
       <div className="mx-auto w-full max-w-md space-y-5">
@@ -232,16 +236,19 @@ export function DepositsWorkspace() {
         ) : null}
 
         {confirmedAmount && reference ? (
-          <Card className="space-y-2 border-green-500/30 bg-green-500/5 p-4 text-sm">
-            <p className="font-medium text-foreground">Deposit request ready</p>
-            <p className="flex flex-wrap items-center gap-2 text-muted">
-              Send exactly <UsdtAmount amount={confirmedAmount} size="sm" className="text-foreground" /> on BEP 20.
-            </p>
-            <p>
-              <span className="text-muted">Reference:</span>{" "}
-              <span className="font-mono font-medium text-foreground">{reference}</span>
-            </p>
-          </Card>
+          <>
+            <Card className="space-y-2 border-amber-500/30 bg-amber-500/5 p-4 text-sm">
+              <p className="font-medium text-foreground">Deposit pending admin approval</p>
+              <p className="flex flex-wrap items-center gap-2 text-muted">
+                Send exactly <UsdtAmount amount={confirmedAmount} size="sm" className="text-foreground" /> on BEP 20.
+              </p>
+              <p>
+                <span className="text-muted">Reference:</span>{" "}
+                <span className="font-mono font-medium text-foreground">{reference}</span>
+              </p>
+            </Card>
+            <DepositProofUpload reference={reference} paymentId={paymentId ?? undefined} />
+          </>
         ) : null}
 
         {status ? <StatusMessage message={status.text} type={status.type} /> : null}

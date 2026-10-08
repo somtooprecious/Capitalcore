@@ -107,6 +107,8 @@ export function AdminConsole({ data }: { data: AdminData }) {
   const [loading, setLoading] = useState(false);
 
   const [editUser, setEditUser] = useState<AdminData["recentUsers"][number] | null>(null);
+  const [proofPreview, setProofPreview] = useState<{ reference: string; dataUrl: string } | null>(null);
+  const [proofLoadingId, setProofLoadingId] = useState<string | null>(null);
 
   const [userForm, setUserForm] = useState({ name: "", role: "USER", kycStatus: "PENDING", balance: "", cryptoBtc: "" });
 
@@ -166,6 +168,25 @@ export function AdminConsole({ data }: { data: AdminData }) {
       refresh();
     } finally {
       setLoading(false);
+    }
+  };
+
+  const viewPaymentProof = async (paymentId: string) => {
+    setProofLoadingId(paymentId);
+    try {
+      const res = await fetch(`/api/admin/payments/${paymentId}/proof`);
+      const payload = (await res.json()) as {
+        error?: string;
+        reference?: string;
+        proof?: { dataUrl: string };
+      };
+      if (!res.ok || !payload.proof?.dataUrl) {
+        notify("error", payload.error ?? "No proof uploaded for this deposit.");
+        return;
+      }
+      setProofPreview({ reference: payload.reference ?? paymentId, dataUrl: payload.proof.dataUrl });
+    } finally {
+      setProofLoadingId(null);
     }
   };
 
@@ -436,13 +457,15 @@ export function AdminConsole({ data }: { data: AdminData }) {
         <Card className="overflow-hidden p-0">
           <div className="border-b border-border px-5 py-4">
             <h2 className="font-semibold">Crypto payments</h2>
-            <p className="text-sm text-muted">Approve deposits to credit user wallets, or reject invalid requests.</p>
+            <p className="text-sm text-muted">
+              Every deposit stays pending until you approve it. View payment screenshots before approving.
+            </p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px] text-left text-sm">
+            <table className="w-full min-w-[920px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border bg-card/60">
-                  {["User", "Amount", "Reference", "Status", "Date", "Actions"].map((col) => (
+                  {["User", "Amount", "Reference", "Proof", "Status", "Date", "Actions"].map((col) => (
                     <th key={col} className="px-5 py-3 font-semibold">
                       {col}
                     </th>
@@ -458,6 +481,20 @@ export function AdminConsole({ data }: { data: AdminData }) {
                     </td>
                     <td className="px-5 py-3 tabular-nums">{formatMoney(payment.amount)}</td>
                     <td className="px-5 py-3 font-mono text-xs">{payment.reference}</td>
+                    <td className="px-5 py-3">
+                      {payment.hasProof ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={proofLoadingId === payment.id}
+                          onClick={() => void viewPaymentProof(payment.id)}
+                        >
+                          {proofLoadingId === payment.id ? "Loading…" : "View proof"}
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted">Not uploaded</span>
+                      )}
+                    </td>
                     <td className="px-5 py-3">
                       <StatusBadge status={payment.status} />
                     </td>
@@ -635,6 +672,33 @@ export function AdminConsole({ data }: { data: AdminData }) {
       {tab === "blog" ? <AdminBlogPanel /> : null}
 
       {tab === "settings" ? <AdminSettingsPanel config={data.platformConfig} /> : null}
+
+      {proofPreview ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <Card className="max-h-[90vh] w-full max-w-2xl overflow-auto p-6">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted">Payment proof</p>
+                <p className="font-mono text-sm text-foreground">{proofPreview.reference}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProofPreview(null)}
+                className="rounded-lg p-1 text-muted transition-colors hover:bg-card hover:text-foreground"
+                aria-label="Close proof preview"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={proofPreview.dataUrl}
+              alt="User payment proof"
+              className="mx-auto max-h-[70vh] w-full rounded-xl border border-border object-contain"
+            />
+          </Card>
+        </div>
+      ) : null}
 
       {editUser ? (
         <EditPanel title="Edit user" onClose={() => setEditUser(null)}>

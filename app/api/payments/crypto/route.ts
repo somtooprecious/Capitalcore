@@ -1,7 +1,6 @@
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/api-auth";
-import { approvePayment } from "@/lib/admin-actions";
 import { prisma } from "@/lib/prisma";
 import { getPlanPaymentAmount } from "@/lib/investments";
 
@@ -73,7 +72,7 @@ export async function POST(req: Request) {
   const reference = `CRYPTO-${randomBytes(6).toString("hex").toUpperCase()}`;
   const depositAddress = USDT_ADDRESS;
 
-  const payment = await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx) => {
     const created = await tx.payment.create({
       data: {
         userId: user.id,
@@ -113,20 +112,19 @@ export async function POST(req: Request) {
     return created;
   });
 
-  try {
-    await approvePayment(payment.id);
-  } catch (error) {
-    console.error("[crypto deposit] Instant approval failed:", error);
-    return NextResponse.json({ error: "Could not credit this deposit right now." }, { status: 500 });
+  const payment = await prisma.payment.findUnique({ where: { reference } });
+  if (!payment) {
+    return NextResponse.json({ error: "Could not create deposit request." }, { status: 500 });
   }
 
-  const instantMessage = plan
+  const pendingMessage = plan
     ? isUpgrade
-      ? `${plan.name} upgrade credited instantly. Send ${amount} USDT (${ASSET_LABEL}) to the address below.`
-      : `${plan.name} activated instantly. Send ${amount} USDT (${ASSET_LABEL}) to the address below. Referral bonuses are credited automatically.`
-    : `$${amount.toFixed(2)} credited to your wallet instantly. Send USDT (${ASSET_LABEL}) to the address below. Referral bonuses are credited automatically.`;
+      ? `Send ${amount} USDT (${ASSET_LABEL}) to upgrade to ${plan.name}, then upload your payment screenshot for admin review.`
+      : `Send ${amount} USDT (${ASSET_LABEL}) to activate ${plan.name}, then upload your payment screenshot for admin review.`
+    : `Send ${amount} USDT (${ASSET_LABEL}) to the address below, then upload your payment screenshot. Admin will approve your deposit.`;
 
   return NextResponse.json({
+    paymentId: payment.id,
     reference,
     depositAddress,
     asset: DEPOSIT_ASSET,
@@ -134,7 +132,7 @@ export async function POST(req: Request) {
     amount,
     planName: plan?.name,
     isUpgrade,
-    status: "COMPLETED",
-    message: instantMessage,
+    status: "PENDING",
+    message: pendingMessage,
   });
 }
